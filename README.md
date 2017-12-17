@@ -749,8 +749,10 @@ HQL injection example (pwn2win 2017)
 
 - Public / Private / Protected 序列化
 
-例如：class名字為: `Kaibro`
-變數名字: `test`
+    - 例如：class名字為: `Kaibro`
+
+    - 變數名字: `test`
+
     - 若為Public，序列化後：
         - `...{s:4:"test";...}`
     - 若為Private，序列化後：
