@@ -608,8 +608,8 @@ end
 - encode / decode
     - `encode('123\\000\\001', 'base64')` => `MTIzAAE=`
     - `decode('MTIzAAE=', 'base64'` => `123\000\001`
-- 不支援limit
-    - `offset 2` 略過前兩筆
+- 不支援limit N, M
+    - `limit a offset b` 略過前b筆，抓出a筆出來
 - 其它
     - version()
     - current_database()
