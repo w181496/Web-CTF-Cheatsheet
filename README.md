@@ -204,7 +204,12 @@ A=fl;B=ag;cat $A$B
 
 ## is_numeric
 
-- `is_numeric(" \t\r\n 123");` => `1`
+- `is_numeric(" \t\r\n 123")` => `true`
+
+- `is_numeric(' 87')` => `true`
+- `is_numeric('87 ')` => `false`
+- `is_numeric(' 87 ')` => `false`
+- `is_numeric('0xdeadbeef')` => `true`
 
 ## parse_url
 
@@ -246,12 +251,32 @@ A=fl;B=ag;cat $A$B
         - 碰到未知類型，`default`不處理
 
 
+## 路徑正規化
+
+- `a.php/.`
+    - `file_put_contents("a.php/.", "<?php phpinfo() ?>");`
+        - 可成功寫入
+            - 經測試Windows可以覆寫、Linux無法
+        - 可以繞過一些正規表達式判斷
+    - `file_get_contents("a.php/.");`
+        - 經測試Windows下可成功讀、Linux無法
+    - 還有很多其他function也適用
+- `"` => `.`
+    - `a"php`
+- `>` => `?`
+    - `a.p>p`
+    - `a.>>>`
+- `<` => `*`
+    - `a.<`
+
+
 ## 其他
 
 - `echo (true ? 'a' : false ? 'b' : 'c');`
     - `b`
 - ```echo `whoami`; ```
     - `kaibro`
+- 正規表達式`.`不匹配換行字元`%0a`
 
 # Command Injection
 
@@ -1351,6 +1376,8 @@ xxe.dtd:
 
 - http://www.pwsay.com/
 
+- http://www.mimayun.club/
+
 - http://leakbase.pw
 
 - https://haveibeenpwned.com/
@@ -1358,6 +1385,8 @@ xxe.dtd:
 ## Crack
 
 - http://cmd5.com
+
+- https://somd5.com/
 
 - https://crackstation.net/
 
@@ -1393,6 +1422,9 @@ xxe.dtd:
     - http://ceye.io
     - https://www.t00ls.net/dnslog.html
     - http://dnsbin.zhack.ca/
+
+- https://r12a.github.io/apps/encodings/
+    - Encoding converter 
 
 - Mimikatz
     - `mimikatz.exe privilege::debug sekurlsa::logonpasswords full exit >> log.txt`
