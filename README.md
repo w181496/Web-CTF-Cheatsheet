@@ -4,20 +4,20 @@ WEB CTF CheatSheet
 Table of Contents
 =================
 
-*  [Webshell](#-webshell)
-*  [PHP Tag](#-php-tag)
-*  [PHP Weak Type](#-php-weak-type)
-*  [PHP Feature](#-php-其他特性)
-*  [Command Injection](#-command-injection)
-*  [SQL Injection](#-sql-injection)
-*  [LFI](#-lfi)
-*  [Upload](#-上傳漏洞)
-*  [Serialization](#-反序列化)
-*  [SSTI](#-ssti)
-*  [SSRF](#-ssrf)
-*  [XXE](#-xxe)
-*  [Others](#-其他)
-*  [Tools and Website](#-tool-&-online-website)
+*  [Webshell](#webshell)
+*  [PHP Tag](#php-tag)
+*  [PHP Weak Type](#php-weak-type)
+*  [PHP Feature](#php-其他特性)
+*  [Command Injection](#command-injection)
+*  [SQL Injection](#sql-injection)
+*  [LFI](#lfi)
+*  [Upload](#上傳漏洞)
+*  [Serialization](#反序列化)
+*  [SSTI](#ssti)
+*  [SSRF](#ssrf)
+*  [XXE](#xxe)
+*  [Others](#其他)
+*  [Tools and Website](#tool-&-online-website)
 
 
 # Webshell
