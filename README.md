@@ -16,8 +16,8 @@ Table of Contents
 *  [SSTI](#ssti)
 *  [SSRF](#ssrf)
 *  [XXE](#xxe)
-*  [Others](#其他)
-*  [Tools and Website](#tool-&-online-website)
+*  [Others](#其他-1)
+*  [Tools and Website](#tool--online-website)
 
 
 # Webshell
