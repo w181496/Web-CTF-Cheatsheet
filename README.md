@@ -1182,7 +1182,7 @@ print marshalled
     - 若反序列化`!ruby/hash`，則相當於在物件上調用`obj[key]=val`，也就是`[]=`方法
     - 而這個`ActionDispatch::Routing::RouteSet::NamedRouteCollection`中的`[]=`方法中，有一條代碼路徑可以eval
     - `define_hash_access`中可以看到`module_eval`，裏頭的`selector`來自`name`
-    - 因為他還會對`value`調用`default` method，所以可以利用`OpenStruct`來構造
+    - 因為他還會對`value`調用`defaults` method，所以可以利用`OpenStruct`來構造
         - `函數名=>返回值`的對應關係存放在`@table`中
     - Payload:
     ```ruby
@@ -1200,9 +1200,9 @@ print marshalled
     ```
 - CVE-2013-0333
     - Rails 2.3.x和3.0.x中，允許`text/json`的request轉成`YAML`解析
-    - `Yaml`在Rails 3.0.x是預設的`JSOM Backend`
+    - `Yaml`在Rails 3.0.x是預設的`JSON Backend`
     - 出問題的地方在於`YAML.load`前的`convert_json_to_yaml`，他不會檢查輸入的JSON是否合法
-    - 一樣可以透過`ActionController::Routing::RouteSet::NamedRouteCollection#define_hash_access `的`module_eval`來RCE
+    - 一樣可以透過`ActionController::Routing::RouteSet::NamedRouteCollection#define_hash_access`的`module_eval`來RCE
 
 
 
