@@ -296,7 +296,7 @@ A=fl;B=ag;cat $A$B
 
 - `parse_url('http://kaibro.tw:87878')`
     - 5.3.X版本以下
-        ```
+        ```php
         array(3) { 
             ["scheme"]=> string(4) "http" 
             ["host"]=> string(9) "kaibro.tw" 
@@ -314,10 +314,10 @@ A=fl;B=ag;cat $A$B
     - `parse_str('gg[kaibro]=5566');`
         
     ```
-        array(1) {
-          ["kaibro"]=>
-            string(4) "5566"
-        }
+    array(1) {
+      ["kaibro"]=>
+        string(4) "5566"
+    }
     ```
 
 ## preg_replace
