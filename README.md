@@ -253,7 +253,7 @@ A=fl;B=ag;cat $A$B
     - `.php?_SESSION[name]=admin`
     - `echo $_SESSION['name']` => 'admin'
 
-## is\_numeric
+## is_numeric
 
 - `is_numeric(" \t\r\n 123")` => `true`
 
@@ -268,28 +268,28 @@ A=fl;B=ag;cat $A$B
     - `' -1.5E+25'`
     - `'1.e5'`
 
-## in\_array
+## in_array
 
-    - `in_array('5 or 1=1', array(1, 2, 3, 4, 5))`
-        - true
-    - `in_array('kaibro', array(0, 1, 2))`
-        - true
+- `in_array('5 or 1=1', array(1, 2, 3, 4, 5))`
+    - true
+- `in_array('kaibro', array(0, 1, 2))`
+    - true
 
-## parse\_str
-    - `parse_str(string, array)`
-    - 會把查詢字串解析到變數中
-    - 如果未設置第二個參數，會解析到同名變數中
-        - PHP7.2中不設置第二個參數會產生`E_DEPRECATED`警告
-    - `parse_str('gg[kaibro]=5566');`
+## parse_str
+- `parse_str(string, array)`
+- 會把查詢字串解析到變數中
+- 如果未設置第二個參數，會解析到同名變數中
+    - PHP7.2中不設置第二個參數會產生`E_DEPRECATED`警告
+- `parse_str('gg[kaibro]=5566');`
 
-    ```
-    array(1) {
-      ["kaibro"]=>
-        string(4) "5566"
-    }
-    ```
+```
+array(1) {
+  ["kaibro"]=>
+    string(4) "5566"
+}
+```
 
-## parse\_url
+## parse_url
 
 - 在處理傳入的URL會有問題
 - `parse_url('/a.php?id=1')`
@@ -319,22 +319,22 @@ A=fl;B=ag;cat $A$B
         ```
     - 其他： false
 
-## preg\_replace
+## preg_replace
 
-    - `mixed preg_replace ( mixed $pattern , mixed $replacement , mixed $subject [, int $limit = -1 [, int &$count ]] )`
-        - 搜尋`$subject`中匹配的`$pattern`，並用`$replacement`替換
-    - 第一個參數用`/e`修飾符，`$replacement`會被當成PHP code執行
-        - 必須有匹配到才會執行
-        - PHP 5.5.0起，會產生`E_DEPRECATED`錯誤
-        - PHP 7.0.0不再支援，用`preg_replace_callback()`代替
+- `mixed preg_replace ( mixed $pattern , mixed $replacement , mixed $subject [, int $limit = -1 [, int &$count ]] )`
+    - 搜尋`$subject`中匹配的`$pattern`，並用`$replacement`替換
+- 第一個參數用`/e`修飾符，`$replacement`會被當成PHP code執行
+    - 必須有匹配到才會執行
+    - PHP 5.5.0起，會產生`E_DEPRECATED`錯誤
+    - PHP 7.0.0不再支援，用`preg_replace_callback()`代替
 
-    example:
+example:
 
-    ```php
-    <?php
-    $a='phpkaibro';
-    echo preg_replace('/(.*)kaibro/e','\\1info()',$a);
-    ```
+```php
+<?php
+$a='phpkaibro';
+echo preg_replace('/(.*)kaibro/e','\\1info()',$a);
+```
 
 ## sprintf / vprintf
 
@@ -345,7 +345,7 @@ A=fl;B=ag;cat $A$B
     - 原理：sprintf實作是用switch...case...
         - 碰到未知類型，`default`不處理
 
-## file\_put\_contents
+## file_put_contents
 
 - 第二個參數如果是陣列，PHP會把它串接成字串
 - example:
