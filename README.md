@@ -268,6 +268,12 @@ A=fl;B=ag;cat $A$B
     - `' -1.5E+25'`
     - `'1.e5'`
 
+## in_array
+
+    - `in_array('5 or 1=1', array(1, 2, 3, 4, 5))`
+        - true
+    - `in_array('kaibro', array(0, 1, 2))`
+        - true
 
 ## parse_url
 
@@ -298,6 +304,37 @@ A=fl;B=ag;cat $A$B
         }
         ```
     - 其他： false
+
+## parse_str
+    - parse_str(string, array)
+    - 會把查詢字串解析到變數中
+    - 如果未設置第二個參數，會解析到同名變數中
+        - PHP7.2中不設置第二個參數會產生E_DEPRECATED警告
+    - `parse_str('gg[kaibro]=5566');`
+        
+        ```
+            array(1) {
+              ["kaibro"]=>
+                string(4) "5566"
+            }
+        ```
+
+## preg_replace
+
+    - `mixed preg_replace ( mixed $pattern , mixed $replacement , mixed $subject [, int $limit = -1 [, int &$count ]] )`
+        - 搜尋`$subject`中匹配的`$pattern`，並用`$replacement`替換
+    - 第一個參數用`/e`修飾符，`$replacement`會被當成PHP code執行
+        - 必須有匹配到才會執行
+        - PHP 5.5.0起，會產生`E_DEPRECATED`錯誤
+        - PHP 7.0.0不再支援，用`preg_replace_callback()`代替
+
+    example:
+
+    ```php
+    <?php
+    $a='phpkaibro';
+    echo preg_replace('/(.*)kaibro/e','\\1info()',$a);
+    ```
 
 ## sprintf / vprintf
 
