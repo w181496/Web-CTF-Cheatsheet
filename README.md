@@ -306,6 +306,7 @@ A=fl;B=ag;cat $A$B
     - 其他： false
 
 ## parse_str
+
     - parse_str(string, array)
     - 會把查詢字串解析到變數中
     - 如果未設置第二個參數，會解析到同名變數中
