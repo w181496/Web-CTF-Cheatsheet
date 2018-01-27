@@ -253,7 +253,7 @@ A=fl;B=ag;cat $A$B
     - `.php?_SESSION[name]=admin`
     - `echo $_SESSION['name']` => 'admin'
 
-## is_numeric
+## is\_numeric
 
 - `is_numeric(" \t\r\n 123")` => `true`
 
@@ -268,14 +268,14 @@ A=fl;B=ag;cat $A$B
     - `' -1.5E+25'`
     - `'1.e5'`
 
-## in_array
+## in\_array
 
     - `in_array('5 or 1=1', array(1, 2, 3, 4, 5))`
         - true
     - `in_array('kaibro', array(0, 1, 2))`
         - true
 
-## parse_str
+## parse\_str
 
     - parse_str(string, array)
     - 會把查詢字串解析到變數中
@@ -291,7 +291,7 @@ A=fl;B=ag;cat $A$B
     ```
 
 
-## parse_url
+## parse\_url
 
 - 在處理傳入的URL會有問題
 - `parse_url('/a.php?id=1')`
@@ -321,7 +321,7 @@ A=fl;B=ag;cat $A$B
         ```
     - 其他： false
 
-## preg_replace
+## preg\_replace
 
     - `mixed preg_replace ( mixed $pattern , mixed $replacement , mixed $subject [, int $limit = -1 [, int &$count ]] )`
         - 搜尋`$subject`中匹配的`$pattern`，並用`$replacement`替換
@@ -347,7 +347,7 @@ A=fl;B=ag;cat $A$B
     - 原理：sprintf實作是用switch...case...
         - 碰到未知類型，`default`不處理
 
-## file_put_contents
+## file\_put\_contents
 
 - 第二個參數如果是陣列，PHP會把它串接成字串
 - example:
