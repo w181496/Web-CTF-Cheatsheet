@@ -275,6 +275,22 @@ A=fl;B=ag;cat $A$B
     - `in_array('kaibro', array(0, 1, 2))`
         - true
 
+## parse_str
+
+    - parse_str(string, array)
+    - 會把查詢字串解析到變數中
+    - 如果未設置第二個參數，會解析到同名變數中
+        - PHP7.2中不設置第二個參數會產生E_DEPRECATED警告
+    - `parse_str('gg[kaibro]=5566');`
+        
+    ```
+    array(1) {
+      ["kaibro"]=>
+        string(4) "5566"
+    }
+    ```
+
+
 ## parse_url
 
 - 在處理傳入的URL會有問題
@@ -304,21 +320,6 @@ A=fl;B=ag;cat $A$B
         }
         ```
     - 其他： false
-
-## parse_str
-
-    - parse_str(string, array)
-    - 會把查詢字串解析到變數中
-    - 如果未設置第二個參數，會解析到同名變數中
-        - PHP7.2中不設置第二個參數會產生E_DEPRECATED警告
-    - `parse_str('gg[kaibro]=5566');`
-        
-    ```
-    array(1) {
-      ["kaibro"]=>
-        string(4) "5566"
-    }
-    ```
 
 ## preg_replace
 
