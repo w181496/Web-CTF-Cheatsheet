@@ -276,20 +276,18 @@ A=fl;B=ag;cat $A$B
         - true
 
 ## parse\_str
-
     - `parse_str(string, array)`
     - 會把查詢字串解析到變數中
     - 如果未設置第二個參數，會解析到同名變數中
         - PHP7.2中不設置第二個參數會產生`E_DEPRECATED`警告
     - `parse_str('gg[kaibro]=5566');`
-        
+
     ```
     array(1) {
       ["kaibro"]=>
         string(4) "5566"
     }
     ```
-
 
 ## parse\_url
 
