@@ -270,18 +270,18 @@ A=fl;B=ag;cat $A$B
 
 ## in\_array
 
-    - `in\_array('5 or 1=1', array(1, 2, 3, 4, 5))`
+    - `in_array('5 or 1=1', array(1, 2, 3, 4, 5))`
         - true
-    - `in\_array('kaibro', array(0, 1, 2))`
+    - `in_array('kaibro', array(0, 1, 2))`
         - true
 
 ## parse\_str
 
-    - parse\_str(string, array)
+    - `parse_str(string, array)`
     - 會把查詢字串解析到變數中
     - 如果未設置第二個參數，會解析到同名變數中
-        - PHP7.2中不設置第二個參數會產生E\_DEPRECATED警告
-    - `parse\_str('gg[kaibro]=5566');`
+        - PHP7.2中不設置第二個參數會產生`E_DEPRECATED`警告
+    - `parse_str('gg[kaibro]=5566');`
         
     ```
     array(1) {
@@ -294,7 +294,7 @@ A=fl;B=ag;cat $A$B
 ## parse\_url
 
 - 在處理傳入的URL會有問題
-- `parse\_url('/a.php?id=1')`
+- `parse_url('/a.php?id=1')`
     
     ```
     array(2) {
@@ -304,13 +304,13 @@ A=fl;B=ag;cat $A$B
         string(4) "id=1"
     }
     ```
-- `parse\_url('///a.php?id=1')`
+- `parse_url('///a.php?id=1')`
     - false
 
-- `parse\_url('/a.php?id=1:80')`
+- `parse_url('/a.php?id=1:80')`
     - false
 
-- `parse\_url('http://kaibro.tw:87878')`
+- `parse_url('http://kaibro.tw:87878')`
     - 5.3.X版本以下
         ```php
         array(3) { 
