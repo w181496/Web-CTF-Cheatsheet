@@ -393,7 +393,9 @@ echo preg_replace('/(.*)kaibro/e','\\1info()',$a);
 ## URL query decode
 - `$_GET`會對傳入的參數做URLdecode再返回
 - `$_SERVER['REQUEST_URI']`和`$_SERVER['QUERY_STRING']`則是直接返回
+
 Example:
+
 Request: `http://kaibro.tw/test.php?url=%67%67`
     * $_GET: `[url] => gg`
     * $_SERVER['REQUEST_URI']: `/test.php?url=%67%67`
@@ -413,6 +415,13 @@ Request: `http://kaibro.tw/test.php?url=%67%67`
         - `$a` => `false`
     - `$a = true and false;`
         - `$a` => `true`
+- chr()
+    - 大於256會mod 256
+    - 小於0會加上256的倍數，直到>0
+    - Example:
+        - `chr(259) === chr(3)`
+        - `chr(-87) === chr(169)`
+
 
 # Command Injection
 
@@ -676,6 +685,13 @@ pop graphic-context
     - `select table_schema,table_name,column_name from information_schema.columns where table_schema !=0x696E666F726D6174696F6E5F736368656D61 and table_schema !=0x6D7973716C and table_schema !=0x706572666F726D616E63655F736368656D61 and (column_name like '%pass%' or column_name like '%pwd%');
     `
 
+- innodb
+    - 表引擎為innodb
+    - MySQL > 5.5
+    - innodb_table_stats、innodb_table_index存放所有庫名表名
+    - `select table_name from mysql.innodb_table_stats where database_name=資料庫名;`
+    - Example: [Codegate2018 prequal - simpleCMS](https://github.com/w181496/CTF/tree/master/codegate2018-prequal/simpleCMS)
+
 ## MSSQL
 
 - 子字串：
@@ -874,7 +890,7 @@ end
     - `0A 0D 0C 09 20`
 - encode / decode
     - `encode('123\\000\\001', 'base64')` => `MTIzAAE=`
-    - `decode('MTIzAAE=', 'base64'` => `123\000\001`
+    - `decode('MTIzAAE=', 'base64')` => `123\000\001`
 - 不支援limit N, M
     - `limit a offset b` 略過前b筆，抓出a筆出來
 - 註解
@@ -1634,6 +1650,7 @@ xxe.dtd:
 - XLSX
 - PPTX
 - PDF
+- https://github.com/BuffaloWill/oxml_xxe
 
 # 其它
 
