@@ -39,6 +39,8 @@ Table of Contents
     * [Finger Print](#fingerprint)
 *  [XXE](#xxe)
     * [Out of Band XXE](#out-of-band-oob-xxe)
+*  [Crypto](#密碼學)
+    * [Length Extension Attack](#length-extension-attack)
 *  [Others](#其它-1)
 *  [Tools and Website](#tool--online-website)
     * [Information Gathering](#information-gathering)
@@ -397,9 +399,12 @@ echo preg_replace('/(.*)kaibro/e','\\1info()',$a);
 Example:
 
 Request: `http://kaibro.tw/test.php?url=%67%67`
-    * $_GET: `[url] => gg`
-    * $_SERVER['REQUEST_URI']: `/test.php?url=%67%67`
-    * $_SERVER['QUERY_STRING']: `url=%67%67`
+    
+* $_GET: `[url] => gg`
+
+* $_SERVER['REQUEST_URI']: `/test.php?url=%67%67`
+    
+* $_SERVER['QUERY_STRING']: `url=%67%67`
 
 
 
@@ -1099,7 +1104,7 @@ HQL injection example (pwn2win 2017)
 - .htaccess
     ```
     <FilesMatch "kai">
-    SetHandler application/x-httpd一php
+    SetHandler application/x-httpd-php
     </FilesMatch>
     ```
 - 文件解析漏洞
@@ -1651,6 +1656,29 @@ xxe.dtd:
 - PPTX
 - PDF
 - https://github.com/BuffaloWill/oxml_xxe
+
+# 密碼學
+
+## Length Extension Attack
+
+- 很多hash算法都可能存在此攻擊，例如`md5`, `sha1`, `sha256`...
+- 主要是因為他們都使用Merkle-Damgard hash construction
+- 會依照64 Byte分組，不足會padding
+    - 1 byte的`0x80`+一堆`0x00`+8 bytes的`長度`
+- IV是寫死的，且每一組輸出結果會當下一組的輸入
+- 攻擊條件： (這裏md5換成sha1, sha256...也通用)
+    - 已知`md5(secret+message)`
+    - 已知`secret長度`
+    - 已知`message內容`
+- 符合三個條件就能構造`md5(secret+message+padding+任意字串)`
+- 工具 - hashpump
+    - 基本用法：
+        1. 輸入`md5(secret+message)`的值
+        2. 輸入`message`的值
+        3. 輸入`secert長度`
+        4. 輸入要加在後面的字串
+        5. 最後會把`md5(secret+message+padding+任意字串)`和`message+padding+任意字串`噴給你
+
 
 # 其它
 
