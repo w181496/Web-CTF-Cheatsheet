@@ -13,6 +13,8 @@ Table of Contents
     * [Bypass Space](#空白繞過)
     * [Bypass Keyword](#keyword繞過)
     * [ImageMagick](#imagemagick-imagetragick)
+    * [Ruby Command Executing](#ruby-command-executing)
+    * [Python Command Executing](#python-command-executing)
 *  [SQL Injection](#sql-injection)
     * [MySQL](#mysql)
     * [MSSQL](#mssql)
@@ -40,6 +42,8 @@ Table of Contents
 *  [XXE](#xxe)
     * [Out of Band XXE](#out-of-band-oob-xxe)
 *  [Crypto](#密碼學)
+    * [PRNG](#prng)
+    * [ECB mode](#ecb-mode)
     * [Length Extension Attack](#length-extension-attack)
 *  [Others](#其它-1)
 *  [Tools and Website](#tool--online-website)
@@ -492,7 +496,7 @@ fill 'url(https://kaibro.tw";ls "-la)'
 pop graphic-context
 ```
 
-## Ruby 
+## Ruby Command Executing
 
 - `open("| ls")`
 - `IO.popen("ls").read`
@@ -503,13 +507,14 @@ pop graphic-context
     - Non-Alphanumeric example: HITCON CTF 2015 - Hard to say
         - `$$/$$` => 1
         - `'' << 97 << 98 << 99` => "abc"
+        - `$:`即`$LOAD_PATH`
 - `exec("ls")`
 - `%x{ls}`
 - Net::FTP
     - CVE-2017-17405
     - use `Kernel#open`
 
-## Python
+## Python Command Executing
 - `os.system("ls")`
 - `os.popen("ls").read()`
 - `os.execl("/bin/ls","")`
@@ -1689,6 +1694,53 @@ xxe.dtd:
 - https://github.com/BuffaloWill/oxml_xxe
 
 # 密碼學
+
+## PRNG
+
+- php 7.1.0後 `rand()`和`srand()`已經等同`mt_rand()`和`mt_srand()`
+    - 測試結果：https://3v4l.org/PIUEo
+
+- php > 4.2.0 會自動對`srand()`和`mt_srand()`播種
+    - 只進行一次seed，不會每次`rand()`都seed
+    
+- 可以通過已知的random結果，去推算隨機數種子，然後就可以推算整個隨機數序列
+- 實際應用上可能會碰到連上的不是同個process，可以用`Keep-Alive
+`來確保連上同個php process(只會seed一次)
+- 7.1以前`rand()`使用libc random()，其核心為：`
+state[i] = state[i-3] + state[i-31]`
+    - 所以只要有31個連續隨機數就能預測接下來的隨機數
+    - 後來`rand()` alias成`mt_rand()`，採用的是`Mersenne Twister`算法
+- Example: HITCON 2015 - Giraffe’s Coffee
+
+
+## ECB mode
+
+### Cut and Paste Attack
+
+- 每個Block加密方式都一樣，所以可以把Block隨意排列
+- 舉例： `user=kaibro;role=user`
+    - 假設Block長度為8
+    - 構造一下user: (`|`用來區隔Block)
+        - `user=aaa|admin;ro|le=user`
+        - `user=aaa|aa;role=|user`
+    - 排列一下：(上面每塊加密後的Block都已知)
+        - `user=aaa|aa;role=|admin;ro`
+- Example: AIS3 2017 pre-exam
+
+### Encryption Oracle Attack
+
+- `ECB(K, A + B + C)`的運算結果可知
+    - B可控
+    - K, A, C未知
+- C的內容可以透過以下方法爆出來：
+    - 找出最小的長度L
+    - 使得將B改成L個a，該段pattern剛好重複兩次
+        - `...bbbb bbaa aaaa aaaa cccc ...`
+        - `...???? ???? 5678 5678 ???? ...`
+    - 改成L-1個a，可得到`ECB(K, "aa...a" + C[0])`這個Block的內容
+    - C[0]可爆破求得，後面也依此類推
+- 常見發生場景：Cookie
+
 
 ## Length Extension Attack
 
