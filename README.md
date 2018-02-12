@@ -44,6 +44,7 @@ Table of Contents
 *  [Crypto](#密碼學)
     * [PRNG](#prng)
     * [ECB mode](#ecb-mode)
+    * [CBC mode](#cbc-mode)
     * [Length Extension Attack](#length-extension-attack)
 *  [Others](#其它-1)
 *  [Tools and Website](#tool--online-website)
@@ -1740,6 +1741,45 @@ state[i] = state[i-3] + state[i-31]`
     - 改成L-1個a，可得到`ECB(K, "aa...a" + C[0])`這個Block的內容
     - C[0]可爆破求得，後面也依此類推
 - 常見發生場景：Cookie
+
+## CBC mode
+
+### Bit Flipping Attack
+
+- 假設IV為A、中間值為B (Block Decrypt後結果)、明文為C
+- CBC mode解密時，`A XOR B = C`
+- 若要使輸出明文變`X`
+- 修改A為`A XOR C XOR X`
+- 則原本式子變成`(A XOR C XOR X) XOR B = X`
+
+### Padding Oracle Attack
+
+- `PKCS#7`
+    - Padding方式：不足x個Byte，就補x個x
+        - 例如：Block長度8
+        - `AA AA AA AA AA AA AA 01`
+        - `AA AA AA AA AA AA 02 02`
+        - `AA AA AA AA AA 03 03 03`
+        - ...
+        - `08 08 08 08 08 08 08 08`
+    - 在常見情況下，如果解密出來發現Padding是爛的，會噴Exception或Error
+        - 例如：HTTP 500 Internal Server Error
+        - 須注意以下這類情況，不會噴錯：
+            - `AA AA AA AA AA AA 01 01`
+            - `AA AA 02 02 02 02 02 02`
+- 原理：
+    - CBC mode下，前一塊密文會當作當前這塊的IV，做XOR
+    - 如果構造`A||B`去解密 (A, B是密文Block)
+    - 此時，A會被當作B的IV，B會被解成`D(B) XOR A`
+    - 可以透過調整A，使得Padding變合法，就可以得到`D(B)`的值
+        - 例如：要解最後1 Byte
+        - 想辦法讓最後解出來變成`01`結尾
+        - 運氣不好時，可能剛好碰到`02 02`結尾，可以調整一下A倒數第2 Byte
+        - `D(B)[-1] XOR A[-1] = 01`
+        - `D(B)[-1] = A[-1] XOR 01`
+        - 有最後1 Byte就可以依此類推，調整倒數第2 Byte
+    - `D(B) XOR C`就能得到明文 (C為前一塊真正的密文)
+
 
 
 ## Length Extension Attack
