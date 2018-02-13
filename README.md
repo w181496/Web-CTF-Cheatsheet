@@ -271,6 +271,10 @@ A=fl;B=ag;cat $A$B
 - `is_numeric('87 ')` => `false`
 - `is_numeric(' 87 ')` => `false`
 - `is_numeric('0xdeadbeef')` => `true`
+- `is_numeric('0xdeadbeef')`
+    - PHP >= 7.0.0 => `false`
+    - PHP < 7.0.0 => `true`
+    - 可以拿來繞過注入
 - 以下亦為合法(返回True)字串:
     - `' -.0'`
     - `'0.'`
@@ -378,6 +382,15 @@ echo preg_replace('/(.*)kaibro/e','\\1info()',$a);
     file_put_contents('output', $test);
     ```
     - 可以直接`?txt[]=<?php phpinfo(); ?>`寫入
+
+## spl_autoload_register
+
+- `spl_autoload_register()`可以自動載入Class
+- 不指定參數，會自動載入`.inc`和`.php`
+- Example:
+    - 如果目錄下有kaibro.inc，且內容為class Kaibro{...}
+    - 則`spl_autoload_register()`會把這個Class載入進來
+
 
 ## 路徑正規化
 
@@ -1365,6 +1378,8 @@ print marshalled
 # SSTI 
 
 Server-Side Template Injection
+
+![img](https://i.imgur.com/GVZeVq6.png)
 
 ## Testing
 - ` {{ 7*'7' }}`
