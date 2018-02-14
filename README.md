@@ -248,6 +248,7 @@ A=fl;B=ag;cat $A$B
 
 - `var_dump(ereg("^[a-zA-Z0-9]+$", "1234\x00-!@#%"));`
     - `1`
+- `ereg`和`eregi`在PHP 7.0.0.已經被移除
 
 ## intval
 
@@ -270,7 +271,6 @@ A=fl;B=ag;cat $A$B
 - `is_numeric(' 87')` => `true`
 - `is_numeric('87 ')` => `false`
 - `is_numeric(' 87 ')` => `false`
-- `is_numeric('0xdeadbeef')` => `true`
 - `is_numeric('0xdeadbeef')`
     - PHP >= 7.0.0 => `false`
     - PHP < 7.0.0 => `true`
