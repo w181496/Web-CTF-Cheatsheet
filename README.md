@@ -265,6 +265,20 @@ A=fl;B=ag;cat $A$B
     - `.php?_SESSION[name]=admin`
     - `echo $_SESSION['name']` => 'admin'
 
+## trim
+
+- 會把字串前後的空白(或其他字元)去掉
+- 未指定第二參數，預設會去掉以下字元
+    - `" "` (0x20)
+    - `"\t"` (0x09)
+    - `"\n"` (0x0A)
+    - `"\x0B"` (0x0B)
+    - `"\r"` (0x0D)
+    - `"\0"` (0x00)
+- 可以發現預設不包含`"\f"` (0x0C)
+    - 比較：is_numeric()允許`\f`在開頭
+- 如果參數是unset或空的變數，回傳值是空字串
+
 ## is_numeric
 
 - `is_numeric(" \t\r\n 123")` => `true`
@@ -470,6 +484,10 @@ Request: `http://kaibro.tw/test.php?url=%67%67`
         - `assert`
     - 其他
         - `~`, `++`等運算，也都可用類似概念構造
+
+- 花括號
+    - 陣列、字串元素存取可用花括號
+    - `$array{index}`同`$array[index]`
 
 # Command Injection
 
