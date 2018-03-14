@@ -31,6 +31,7 @@ Table of Contents
 *  [SSTI](#ssti)
     * [Flask/Jinja2](#flaskjinja2)
     * [AngularJS](#angularjs)
+    * [Vue.js](#vuejs)
     * [Python](#python)
     * [Tool](#tool)
 *  [SSRF](#ssrf)
@@ -1346,8 +1347,12 @@ HQL injection example (pwn2win 2017)
 ---
 
 - CVE-2016-7124
-    - 物件屬性個數大於真正的屬性個數，會略過__wakeup的執行
-    - HITCON 2016 CTF
+    - 影響版本：
+        - PHP5 < 5.6.25
+        - PHP7 < 7.0.10
+    - 物件屬性個數大於真正的屬性個數，會略過`__wakeup`的執行
+    - 反序列化會失敗，但是`__destruct`會執行
+    - HITCON 2016
 
 - 小特性
     - `O:+4:"test":1:{s:1:"a";s:3:"aaa";}`
@@ -1452,6 +1457,9 @@ print marshalled
     - 出問題的地方在於`YAML.load`前的`convert_json_to_yaml`，他不會檢查輸入的JSON是否合法
     - 一樣可以透過`ActionController::Routing::RouteSet::NamedRouteCollection#define_hash_access`的`module_eval`來RCE
 
+## Java Deserialization
+
+- https://github.com/GrrrDog/Java-Deserialization-Cheat-Sheet
 
 
 # SSTI 
@@ -1498,7 +1506,7 @@ Server-Side Template Injection
     - `{{x = {'y':''.constructor.prototype}; x['y'].charAt=[].join;$eval('x=alert(1)');}}` v1.5.0-v1.5.8
     - `{{ [].pop.constructor('alert(1)')() }}` 2.8 v1.6.0-1.6.6
 
-## vue.js
+## Vue.js
 - `{{constructor.constructor('alert(1)')()}}`
 - https://github.com/dotboris/vuejs-serverside-template-xss
 
