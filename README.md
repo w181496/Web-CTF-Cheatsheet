@@ -1887,6 +1887,22 @@ xxe.dtd:
 - http://utf-8.jp/public/aaencode.html
 - https://cat-in-136.github.io/2010/12/aadecode-decode-encoded-as-aaencode.html
 
+
+## RPO
+
+- http://example.com/a%2findex.php
+    - 瀏覽器會把`a%2findex.php`當成一個檔案
+    - Web Server則會正常解析成`a/index.php`
+    - 所以當使用**相對路徑**載入css時，就可以透過這種方式讓瀏覽器解析到其他層目錄下的檔案
+        - 如果該檔案內容可控，則有機會XSS
+        - 舉例： `/test.php`中有`<link href="1/" ...>`
+        - `/1/index.php`給`?query=`參數，會直接顯示該參數內容
+        - 訪問`/1%2f%3Fquery={}*{background-color%3Ared}%2f..%2f../test.php`就會讓背景變紅色
+            - Server: `/test.php`
+            - Browser: `/1%2f%3Fquery={}*{background-color%3Ared}%2f..%2f../1/`
+            - CSS語法容錯率很高
+
+
 # 密碼學
 
 ## PRNG
