@@ -449,6 +449,22 @@ Request: `http://kaibro.tw/test.php?url=%67%67`
     
 * $_SERVER['QUERY_STRING']: `url=%67%67`
 
+## OPcache
+
+- 透過將PHP腳本編譯成Byte code的方式做Cache來提升性能
+- 相關設定在php.ini中
+    - `opcache.enable` 是否啟用
+    - `opcache.file_cache` 設定cache目錄
+        - 例如:`opcache.file_cache="/tmp/opcache"`
+        - `/var/www/index.php`的暫存會放在`/tmp/opcache/[system_id]/var/www/index.php.bin`
+    - `opcache.file_cache_only` 設定cache文件優先級
+    - `opcache.validate_timestamps` 是否啟用timestamp驗證
+- `system_id`是透過Zend和PHP版本號計算出來的，可以確保相容性
+- 所以在某些條件下可透過上傳覆蓋暫存文件來寫webshell
+    - system_id要和目標機器一樣
+    - timestamp要一致
+- https://github.com/GoSecure/php7-opcache-override
+    - Disassembler可以把Byte code轉成Pseudo code
 
 
 ## 其他
