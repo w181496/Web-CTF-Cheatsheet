@@ -338,6 +338,19 @@ array(1) {
   ["kaibro"]=>
     string(4) "5566"
 }
+
+- PHP變數有空格和.，會被轉成底線
+    
+    ```
+    parse_str("na.me=kaibro&pass wd=ggininder",$test);
+    var_dump($test);
+    
+    array(2) { 
+        ["na_me"]=> string(6) "kaibro" 
+        ["pass_wd"]=> string(9) "ggininder" 
+    } 
+    ```
+
 ```
 
 ## parse_url
