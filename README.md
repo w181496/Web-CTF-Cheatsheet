@@ -549,6 +549,10 @@ Request: `http://kaibro.tw/test.php?url=%67%67`
         - 某些版本會是True
         - ASIS 2018 Qual Nice Code
     - https://3v4l.org/sUEMG
+- openssl_verify
+    - 預測採用SHA1來做簽名，可能有SHA1 Collision問題
+    - DEFCON CTF 2018 Qual
+
 
 # Command Injection
 
@@ -1045,6 +1049,9 @@ pop graphic-context
     - `SELECT name FROM sqlite_master WHERE type='table'`
 - 爆表結構(含Column)
     - `SELECT sql FROM sqlite_master WHERE type='table'`
+- 其他
+    - `sqlite_version()`
+    - sqlite無法使用`\'`跳脫單引號
 - Boolean Based: SECCON 2017 qual SqlSRF
 ```ruby
 # encoding: UTF-8
