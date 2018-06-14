@@ -1058,6 +1058,7 @@ pop graphic-context
 
 <details>
     <summary><b>Click here to view script</b></summary>
+
 ```ruby
 # encoding: UTF-8
 
@@ -1095,6 +1096,7 @@ $ans = ''
 end
 
 ```
+
 </details>
 
 ## PostgreSQL
