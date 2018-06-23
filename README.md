@@ -1142,7 +1142,7 @@ end
     - inet\_server\_addr()
     - inet\_server\_port()
     - inet\_client\_addr()
-    - inet\_client\_port(
+    - inet\_client\_port()
     - type conversion
         - `cast(count(*) as text)`
     - `md5('abc')`
