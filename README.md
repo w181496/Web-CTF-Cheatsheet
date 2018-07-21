@@ -321,6 +321,22 @@ A=fl;B=ag;cat $A$B
     - true
 - `in_array('kaibro', array(0, 1, 2))`
     - true
+- `in_array(array(), array('kai'=>false))`
+    - true
+- `in_array(array(), array('kai'=>null))`
+    - true
+- `in_array(array(), array('kai'=>0))`
+    - false
+- `in_array(array(), array('kai'=>'bro'))`
+    - false
+- `in_array('kai', array('kai'=>true))`
+    - true
+- `in_array('kai', array('kai'=>'bro'))`
+    - false
+- `in_array('kai', array('kai'=>0))`
+    - true
+- `in_array('kai', array('kai'=>1))`
+    - false
 
 ## array_search
 
