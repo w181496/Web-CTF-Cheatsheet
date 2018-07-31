@@ -357,12 +357,13 @@ A=fl;B=ag;cat $A$B
     - PHP7.2中不設置第二個參數會產生`E_DEPRECATED`警告
 - `parse_str('gg[kaibro]=5566');`
 
-```
-array(1) {
-  ["kaibro"]=>
-    string(4) "5566"
-}
+    ```
+    array(1) {
+      ["kaibro"]=>
+        string(4) "5566"
+    }
 
+    ```
 - PHP變數有空格和.，會被轉成底線
     
     ```
@@ -375,7 +376,6 @@ array(1) {
     } 
     ```
 
-```
 
 ## parse_url
 
