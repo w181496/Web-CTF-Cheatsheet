@@ -520,6 +520,17 @@ Request: `http://kaibro.tw/test.php?url=%67%67`
 - https://github.com/GoSecure/php7-opcache-override
     - Disassembler可以把Byte code轉成Pseudo code
 
+## PCRE回溯次數限制繞過
+
+- PHP的PCRE庫使用NFA作為正規表達式引擎
+    - NFA在匹配不上時，會回溯嘗試其他狀態
+- PHP為防止DOS，設定了PCRE回溯次數上限
+    - `pcre.backtrack_limit`
+    - 預設為`1000000`
+- 回溯次數超過上限時，`preg_match()`會返回`false`
+- Example
+    - Code-Breaking Puzzles - pcrewaf
+
 
 ## 其他
 
@@ -1234,6 +1245,7 @@ end
     - `pg_ls_dir(dirname)`
         - 列目錄內容
         - 只能列data_directory下的
+    - PHP的`pg_query()`可以多語句執行
 
 ## ORM injection
 
