@@ -1913,7 +1913,7 @@ Server-Side Template Injection
     userdata = {"user" : "kaibro", "password" : "ggininder" }
     passwd  = raw_input("Password: ")
     if passwd != userdata["password"]:
-        print ("Password " + passwd + " is wrong")
+        print ("Password " + passwd + " is wrong for user %(user)s") % userdata
     ```
 - `f`
     - python 3.6
