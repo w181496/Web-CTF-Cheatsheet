@@ -655,6 +655,17 @@ echo file_get_contents('bar/etc/passwd');
     - e.g. RCTF 2019 - nextphp
 - [Extension](https://github.com/w181496/FuckFastcgi)
 - [l3mon/Bypass_Disable_functions_Shell](https://github.com/l3m0n/Bypass_Disable_functions_Shell)
+
+- [JSON UAF Bypass](https://github.com/mm0r1/exploits/tree/master/php-json-bypass)
+    - 7.1 - all versions to date
+    - 7.2 < 7.2.19 (released: 30 May 2019)
+    - 7.3 < 7.3.6 (released: 30 May 2019)
+- [GC Bypass](https://github.com/mm0r1/exploits/tree/master/php7-gc-bypass)
+    - 7.0 - all versions to date
+    - 7.1 - all versions to date
+    - 7.2 - all versions to date
+    - 7.3 - all versions to date
+
 - 族繁不及備載......        
 
 ## 其他
@@ -2676,6 +2687,12 @@ state[i] = state[i-3] + state[i-31]`
     ```
     - 因為`/files`沒有加上結尾`/`，而`/home/`有
     - 所以`/files../`可以訪問上層目錄
+
+- Javascript大小寫特性
+    - `"ı".toUpperCase() == 'I'`
+    - `"ſ".toUpperCase() == 'S'`
+    - `"K".toLowerCase() == 'k'`
+    - [Reference](https://www.leavesongs.com/HTML/javascript-up-low-ercase-tip.html)
 
 - Node.js目錄穿越漏洞
     - CVE-2017-14849
