@@ -33,6 +33,7 @@ Table of Contents
     * [.NET Serialization](#net-derserialization)
 *  [SSTI](#ssti)
     * [Flask/Jinja2](#flaskjinja2)
+    * [Twig/Symfony](#twig--symfony)
     * [AngularJS](#angularjs)
     * [Vue.js](#vuejs)
     * [Python](#python)
@@ -59,8 +60,7 @@ Table of Contents
 *  [Others](#其它-1)
 *  [Tools and Website](#tool--online-website)
     * [Information Gathering](#information-gathering)
-    * [Social Engineering](#social-engineering)
-    * [Crack](#crack)
+    * [Hash Crack](#hash-crack)
 
 
 # Webshell
@@ -1064,6 +1064,11 @@ pop graphic-context
     - group_concat()
         - 合併多條結果
             - e.g. `select group_concat(username) from users;` 一次返回所有使用者名
+        - group_concat_max_len = 1024 (default)
+    - json_arrayagg()
+        - MySQL >= 5.7.22
+        - 同上
+            - e.g. `SELECT json_arrayagg(concat_ws(0x3a,table_schema,table_name)) from INFORMATION_SCHEMA.TABLES`
     - greatest()
         - `greatest(a, b)`返回a, b中最大的
         - `greatest(1, 2)=2`
@@ -2327,6 +2332,7 @@ http://blog.portswigger.net/2015/08/server-side-template-injection.html
 
 ```
 127.0.0.1
+127.00000.00000.0001
 localhost
 127.0.1
 127.1
@@ -2390,7 +2396,7 @@ http://[::]
     - `curl file://google.com/etc/passwd`
         - 新版已修掉
         - 實測libcurl 7.47可work
-    - Java原生可列目錄
+    - Java原生可列目錄 (netdoc亦可)
     - Perl/Ruby open Command Injection
 
 - Libreoffice CVE-2018-6871
