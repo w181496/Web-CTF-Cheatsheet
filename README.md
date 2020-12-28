@@ -3286,6 +3286,9 @@ console.log(document.test2); // <form name=test2></form>
 
 - `id` 屬性被當成全域變數
 - `name` 屬性被當成 `document` 屬性
+
+<br>
+
 - 覆蓋原生函數
 
 ```html
@@ -3303,20 +3306,23 @@ console.log("I'll be executed!");
 
 這裡第一個script block因為錯誤被跳過，第二個script block依舊會執行 (常拿來繞檢查)
 
+<br>
+
 - toString 問題
 
-```html
-<form id=test1><input name=test2></form>
-<script>
-  alert(test1.test2); // "[object HTMLInputElement]"
-</script>
-```
-
+    ```html
+    <form id=test1><input name=test2></form>
+    <script>
+      alert(test1.test2); // "[object HTMLInputElement]"
+    </script>
+    ```
     - `<a>` 的 `href` 可以解決toString問題: `<a id=test1 href=http://kaibro.tw>`
         - => `alert(test1); // http://kaibro.tw`
     - `<form id=test1><a name=test2 href=http://kaibro.tw></form>` 依舊有問題
-        - => `alert(test1.test2); // undefined`
+        - `alert(test1.test2);` => `undefined`
         - 解法見下面HTMLCollection
+
+<br>
 
 - HTMLCollection
 
