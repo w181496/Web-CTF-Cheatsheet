@@ -789,6 +789,8 @@ echo file_get_contents('bar/etc/passwd');
     - Affected
         - PHP version 8.0 (alpha)
         - PHP version 7.4.10 and prior (probably also future versions will be affected)
+    - Example
+        - [RealWorld CTF 3rd - MoP2021](https://github.com/w181496/CTF/tree/master/RealWorldCTF2021/MoP2021)
 
 - 族繁不及備載......        
 
@@ -1686,6 +1688,8 @@ end
     - `SELECT column_name FROM information_schema.columns WHERE table_name='admin'`
 - Dump all 
     - `array_to_string(array(select userid||':'||password from users),',')`
+- 列舉 privilege
+    - `SELECT * FROM pg_roles;`
 - 列舉用戶 hash
     - `SELECT usename, passwd FROM pg_shadow`
 - RCE
@@ -3620,6 +3624,10 @@ state[i] = state[i-3] + state[i-31]`
         - Command Injection
             - Ruby open: `"/path/to/key_file|whoami"`
         - Example: [HITB CTF 2017 - Pasty](https://chybeta.github.io/2017/08/29/HITB-CTF-2017-Pasty-writeup/)
+    - jku
+        - 用來指定連接到加密Token密鑰的URL
+        - 如果未限制的話，攻擊者可以指定自己的密鑰文件，用它來驗證token
+            - Example: [VolgaCTF 2021 Qual - JWT](https://github.com/w181496/CTF/tree/master/volgactf2021_quals/JWT)
     - 敏感訊息洩漏
         - JWT 是保證完整性而不是保證機密性
         - base64 decode 後即可得到 payload 內容
@@ -3651,6 +3659,10 @@ state[i] = state[i-3] + state[i-31]`
     - X-Host
     - ...
     - 各種繞 Limit (e.g. Rate limit bypass)
+    - Heroku feature
+        - https://jetmind.github.io/2016/03/31/heroku-forwarded.html
+        - 同時送多個 `X-Forwarded-For` header，可以讓真實IP被包在IP list中間 (Spoofing)
+        - Example: [angstromCTF 2021 - Spoofy](https://github.com/r00tstici/writeups/tree/master/angstromCTF_2021/spoofy)
 
 - DNS Zone Transfer
     - `dig @1.2.3.4 abc.com axfr`
@@ -3700,6 +3712,13 @@ state[i] = state[i-3] + state[i-31]`
 - Nginx add_header 
     - 預設當 repsponse 是 200, 201, 204, 206, 301, 302, 303, 304, 307, or 308 時，`add_header`才會設定 header
     - e.g. [Codegate 2020 - CSP](https://balsn.tw/ctf_writeup/20200208-codegatectf2020quals/#csp)
+
+- Nginx $url CRLF Injection
+    - `$uri` 是解碼後的請求路徑，可能包含換行，有機會導致CRLF Injection
+        - 應改用 `$request_uri`
+    - Example: [VolgaCTF 2021 - Static Site](https://github.com/w181496/CTF/tree/master/volgactf2021_quals/Static_Site)
+        - `proxy_pass https://volga-static-site.s3.amazonaws.com$uri;`
+        - CRLF Injection 蓋掉 S3 Bucket 的 Host header，控 Response 內容做 XSS
 
 - Javascript大小寫特性
     - `"ı".toUpperCase() == 'I'`
@@ -3925,4 +3944,6 @@ OR
 
 [![Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/black_img.png)](https://www.buymeacoffee.com/b4wKcIZ)
 
+
+[![Stargazers over time](https://starchart.cc/w181496/Web-CTF-Cheatsheet.svg)](https://starchart.cc/w181496/Web-CTF-Cheatsheet)
 
