@@ -1090,6 +1090,8 @@ pop graphic-context
     - user()
         - current_user
         - current_user()
+        - SESSION_USER()
+        - SYSTEM_USER()
         - current user 
     - system_user()
         - database system user
@@ -1954,7 +1956,7 @@ HQL injection example (pwn2win 2017)
 - `C:/boot.ini`
 - `C:/apache/logs/access.log`
 - `../../../../../../../../../boot.ini/.......................`
-- `%WINDIR%\System32\drivers\etc\hosts`
+- `C:\Windows\System32\drivers\etc\hosts`
 - `C:\WINDOWS\System32\Config\SAM`
 - `C:/WINDOWS/repair/sam`
 - `C:/WINDOWS/repair/system`
@@ -1968,6 +1970,10 @@ HQL injection example (pwn2win 2017)
 - `C:\Documents and Settings\All Users\Application Data\Git\config`
 - `C:\ProgramData\Git\config`
 - `$env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt`
+- `C:\inetpub\temp\appPools\DefaultAppPool\DefaultAppPool.config`
+- `C:\Windows\System32\inetsrv\config\ApplicationHost.config`
+- `C:\WINDOWS\debug\NetSetup.log`
+- `C:\WINDOWS\pfro.log`
 
 ## 環境變數
 
@@ -2018,8 +2024,12 @@ HQL injection example (pwn2win 2017)
     - 當`session.upload_progress.enabled`開啟，可以POST在`$_SESSION`中添加資料 (`sess_{PHPSESSID}`)
     - 配合LFI可以getshell
     - `session.upload_progress.cleanup=on`時，可以透過Race condition
+    - 上傳zip
+        - 開頭會有`upload_progress_`，結尾也有多餘資料，導致上傳zip正常狀況無法解析
+        - 利用zip格式鬆散特性，刪除前16 bytes或是手動修正EOCD和CDH的offset後上傳，可以讓php正常解析zip
     - Example
         - [HITCON CTF 2018 - One Line PHP Challenge](https://blog.kaibro.tw/2018/10/24/HITCON-CTF-2018-Web/)
+        - [0CTF 2021 Qual - 1linephp](https://github.com/w181496/CTF/tree/master/0ctf2021_qual/1linephp)
 
 ## data://
 
@@ -2037,6 +2047,8 @@ HQL injection example (pwn2win 2017)
 - zip
     - 新建zip，裡頭壓縮php腳本(可改副檔名)
     - `?file=zip://myzip.zip#php.jpg`
+    - Example
+        - [0CTF 2021 Qual - 1linephp](https://github.com/w181496/CTF/tree/master/0ctf2021_qual/1linephp)
 - phar
     - ```php
         <?php
@@ -2430,6 +2442,7 @@ print marshalled
         - 透過字典檔配合DNS callback，判斷環境使用哪些library, class等資訊
 - [Java-Deserialization-Cheat-Sheet](https://github.com/GrrrDog/Java-Deserialization-Cheat-Sheet)
 - Example
+    - [0CTF 2021 Qual - 2rm1](https://github.com/ceclin/0ctf-2021-2rm1-soln)
     - [0CTF 2019 Final - hotel booking system](https://balsn.tw/ctf_writeup/20190608-0ctf_tctf2019finals/#tctf-hotel-booking-system)
     - [TrendMicro CTF 2018 Qual - Forensics 300](https://github.com/balsn/ctf_writeup/tree/master/20180914-trendmicroctf#300-3)
     - [TrendMicro CTF 2019 Qual - Forensics 300](https://github.com/w181496/CTF/tree/master/trendmicro-ctf-2019/forensics300)
@@ -3633,7 +3646,7 @@ state[i] = state[i-3] + state[i-31]`
         - base64 decode 後即可得到 payload 內容
         - Example
             - [CSAW CTF 2018 Qual - SSO](https://github.com/w181496/CTF/blob/47fe34112401d123b2b53ee12058e7ec72888e0e/csaw_2018_qual/sso/README.md)
-
+    - jwt.io
 - 常見Port服務
     - http://packetlife.net/media/library/23/common_ports.pdf
 - `php -i | grep "Loaded Configuration File"`
