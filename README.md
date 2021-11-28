@@ -3897,6 +3897,23 @@ state[i] = state[i-3] + state[i-31]`
     - `"ſ".toUpperCase() == 'S'`
     - `"K".toLowerCase() == 'k'`
     - [Reference](https://www.leavesongs.com/HTML/javascript-up-low-ercase-tip.html)
+- Javascript replace特性
+    - replace string 中可以使用 `$`
+    ```
+    > "123456".replace("34", "xx")
+    '12xx56'
+    > "123456".replace("34", "$`")
+    '121256'
+    > "123456".replace("34", "$&")
+    '123456'
+    > "123456".replace("34", "$'")
+    '125656'
+    > "123456".replace("34", "$$")
+    '12$56'
+    ```
+    - Example
+        - [Dragon CTF 2021 - webpwn](https://github.com/w181496/CTF/tree/master/dragonctf-2021)
+
 
 - Node.js目錄穿越漏洞
     - CVE-2017-14849
