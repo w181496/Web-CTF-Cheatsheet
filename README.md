@@ -2058,7 +2058,7 @@ HQL injection example (pwn2win 2017)
         - [HITCON CTF 2018 - One Line PHP Challenge](https://blog.kaibro.tw/2018/10/24/HITCON-CTF-2018-Web/)
         - [0CTF 2021 Qual - 1linephp](https://github.com/w181496/CTF/tree/master/0ctf2021_qual/1linephp)
 
-### PEAR
+## PEAR
 
 - 條件
     - 安裝pear (pearcmd.php)
@@ -2079,6 +2079,20 @@ HQL injection example (pwn2win 2017)
     - [Balsn CTF 2021 - 2linephp](https://github.com/w181496/My-CTF-Challenges/tree/master/Balsn-CTF-2021#2linephp)
     - [巅峰极客2020 - MeowWorld](https://www.anquanke.com/post/id/218977#h2-3)
 
+## Nginx buffering
+
+- 當 Request body 過大或是 fastcgi server response 過大，超過 buffer size 時，其內容會保存到暫存檔中 ([reference](https://nginx.org/en/docs/http/ngx_http_core_module.html#client_body_buffer_size))
+    - 會在 `/var/lib/nginx/body/`, `/var/lib/nginx/fastcgi/` 下建立暫存檔
+    - 但該暫存檔會馬上被刪除
+    - 可以透過 `/proc/<nginx worker pid>/fd/<fd>` 來取得被刪除的檔案內容
+        - php 的 `include()` 會將 fd 路徑解析成 `/var/lib/nginx/body/0000001337 (deleted)` 格式，導致引入失敗
+        - 可以用以下方式繞過
+            - `/proc/self/fd/34/../../../34/fd/15`
+            - `/proc/self/root/proc/self/root/proc/self/root/proc/self/root/proc/self/root/proc/self/root/proc/self/root/proc/self/root/proc/self/root/proc/self/root/proc/self/root/proc/self/root/proc/self/root/proc/self/root/proc/self/root/proc/self/root/proc/self/root/proc/self/root/proc/self/root/proc/self/root/proc/self/root/proc/34/fd/15`
+
+- Example
+    - [hxp ctf 2021 - includer's revenge](https://hxp.io/blog/90/hxp%20CTF%202021:%20includer%27s%20revenge%20writeup/)
+    - [hxp ctf 2021 - counter](https://hxp.io/blog/89/hxp-CTF-2021-counter-writeup/)
 
 ## data://
 
@@ -2340,6 +2354,7 @@ HQL injection example (pwn2win 2017)
     - phar文件會將使用者自定義的metadata以序列化形式保存
     - 透過`phar://`偽協議可以達到反序列化的效果
     - 常見影響函數: `file_get_contents()`, `file_exists()`, `is_dir()`, ...
+    - 透過phar觸發反序列化時，檔名需要有副檔名(任意副檔名都行)
     - Payload generator
       ```
       <?php
@@ -2522,10 +2537,17 @@ print marshalled
 - Codebase
     - JDK 6u45, 7u21 開始，`useCodebaseOnly` 預設為 true
         - 禁止自動載入遠端 class 文件
-    - JDK 6u132, 7u122, 8u113 下，`com.sun.jndi.rmi.object.trustURLCodebase`, `com.sun.jndi.cosnaming.object.trustURLCodebase` 預設為 false
-        - RMI 預設不允許從遠端 Codebase 載入 Reference class
-    - JDK 11.0.1, 8u191, 7u201, 6u211 後，`com.sun.jndi.ldap.object.trustURLCodebase` 預設為 false
-        - LDAP 預設不允許從遠端 Codebase 載入 Reference class
+    - JNDI Injection
+        - JDK 6u132, 7u122, 8u113 下，`com.sun.jndi.rmi.object.trustURLCodebase`, `com.sun.jndi.cosnaming.object.trustURLCodebase` 預設為 false
+            - RMI 預設不允許從遠端 Codebase 載入 Reference class
+        - JDK 11.0.1, 8u191, 7u201, 6u211 後，`com.sun.jndi.ldap.object.trustURLCodebase` 預設為 false
+            - LDAP 預設不允許從遠端 Codebase 載入 Reference class
+        - 高版本JDK (8u191+)
+            - codebase 無法利用 (trustURLCodebase=false)
+            - 可能攻擊路徑
+                - 1. 找可利用的 ObjectFactory
+                    - e.g. Tomcat 下可利用 `org.apache.naming.factory.BeanFactory` + `javax.el.ELProcessor`
+                - 2. 透過 `javaSerializedData` 進行反序列化
 - Tool
     - [yososerial](https://github.com/frohoff/ysoserial)
         - URLDNS: 不依賴任何額外library，可以用來做 dnslog 驗證
@@ -2541,6 +2563,7 @@ print marshalled
         - 找 gadget chain
     - [GadgetProbe](https://github.com/BishopFox/GadgetProbe)
         - 透過字典檔配合DNS callback，判斷環境使用哪些library, class等資訊
+    - [JNDI-Injection-Bypass](https://github.com/welk1n/JNDI-Injection-Bypass)
 - [Java-Deserialization-Cheat-Sheet](https://github.com/GrrrDog/Java-Deserialization-Cheat-Sheet)
 - Example
     - [Balsn CTF 2021 - 4pple Music](https://github.com/w181496/My-CTF-Challenges/tree/master/Balsn-CTF-2021#4pple-music)
