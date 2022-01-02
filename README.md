@@ -2019,6 +2019,10 @@ HQL injection example (pwn2win 2017)
 - `php://filter/convert.iconv.UCS-2LE.UCS-2BE/resource=index.php`
 - `php://filter/convert.iconv.UCS-4LE.UCS-4BE/resource=index.php`
 - ...
+- 進階玩法
+    - LFI RCE without controlling any file: https://github.com/wupco/PHP_INCLUDE_TO_SHELL_CHAR_DICT
+    - Example:
+        - [hxp ctf 2021 - includer's revenge](https://gist.github.com/loknop/b27422d355ea1fd0d90d6dbc1e278d4d)
 
 ## php://input
 
