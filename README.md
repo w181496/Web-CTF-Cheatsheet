@@ -218,7 +218,7 @@ if("kaibro".equals(request.getParameter("pwd"))) {
 
 - JSPX webshell:
 
-```
+```xml
 <jsp:root xmlns:jsp="http://java.sun.com/JSP/Page"
   version="1.2">
 <jsp:directive.page contentType="text/html"/>
@@ -2092,6 +2092,8 @@ HQL injection example (pwn2win 2017)
         - [CakeCTF 2022 - ImageSurfing](https://ptr-yudai.hatenablog.com/#ImageSurfing)
         - [DownUnderCTF 2022 - minimal-php](https://github.com/DownUnderCTF/Challenges_2022_Public/tree/main/web/minimal-php)
         - [blaklisctf - chall3](https://twitter.com/Blaklis_/status/1625918537813446656)
+        - [HITCON CTF 2022 - web2pdf](https://blog.splitline.tw/hitcon-ctf-2022/)
+        - [N1CTF 2023 - laravel](https://ctftime.org/writeup/38034)
 ## php://input
 
 - `?page=php://input`
@@ -3566,7 +3568,16 @@ require("./index.js")
 - 特殊標籤
     - 以下標籤中的腳本無法執行
     - `<title>`, `<textarea>`, `<iframe>`, `<plaintext>`, `<noscript>`...
-
+- innerHTML
+    - `<script>` 不會被 trigger
+    - 其他標籤可，例如: `<img src=@ onerror=alert()>`
+    - double `<svg>` trick 
+        - `<svg><svg onload=alert()>`
+        - 透過 innerHTML 插入時，會立即被觸發
+        - Example
+            - [Dice CTF 2022 - no-cookes](https://blog.huli.tw/2022/02/08/what-i-learned-from-dicectf-2022/)
+            - [HITCON CTF 2022 - Self Destruct Message](https://blog.splitline.tw/hitcon-ctf-2022/)
+            - [一次对 Tui Editor XSS 的挖掘与分析](https://www.leavesongs.com/PENETRATION/a-tour-of-tui-editor-xss.html)
 - Protocol
     - javascript:
         - `<a href=javascript:alert(1) >xss</a>`
@@ -3654,6 +3665,12 @@ require("./index.js")
         - 變成合法的 js 語法
         - wave在apache mime type 中沒有被定義
         - `<script src="uploads/this_file.wave">`
+- Text fragment
+    - `:~:text=xxx`
+    - [New feature in Chrome 80](https://developer.chrome.com/blog/new-in-chrome-80/#more)
+    - Chrome will scroll to and highlight the first instance of that text fragment
+    - Example
+        - [Plaid CTF 2020 - Catalog](https://dttw.tech/posts/B19RXWzYL)
 
 ### CSP evaluator
 
@@ -3915,6 +3932,22 @@ alert(window.test1.test2);  //  x:alert(1)
 - Example
     - [Google CTF 2019 Qual - pastetastic](https://github.com/koczkatamas/gctf19/tree/master/pastetastic)
     - [Volga CTF 2020 Qualifier - Archive](https://blog.blackfan.ru/2020/03/volgactf-2020-qualifier-writeup.html)
+
+## Shadow DOM
+
+- 可以將隱藏、獨立的 DOM 附加到元素上
+- 透過 `Element.attachShadow()` 可以將一個 Shadow root 附加到一個元素上
+    - 參數可以帶 `{mode:"open"}` 或是 `{mode:"closed"}`
+        - open: `Elements of the shadow root are accessible from JavaScript outside the root`
+        - closed: `Denies access to the node(s) of a closed shadow root from JavaScript outside it`
+- `window.find` + `-webkit-user-modify` + `document.execCommand`
+    - 透過 CSS `-webkit-user-modify:read-write` 屬性，可以讓 shadow DOM 做到 `contenteditable` 效果
+    - `window.find()` 可以 focus shadow DOM 中的內容
+    - 之後就能用 `document.execCommand()` 去插入 HTML，透過 svg 執行 JS 取得節點
+        - `document.execCommand('insertHTML',false,'<svg/onload=alert(this.parentNode.innerHTML)>')">`
+- Example
+    - [Dice CTF 2022 - shadow](https://github.com/Super-Guesser/ctf/blob/master/2022/dicectf/shadow.md)
+    - [HITCON CTF 2022 - Self Destruct Message](https://blog.splitline.tw/hitcon-ctf-2022/)
 
 # 密碼學
 
