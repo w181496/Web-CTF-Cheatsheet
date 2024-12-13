@@ -2702,13 +2702,27 @@ uid=1000(ubuntu) gid=1000(ubuntu) groups=1000(ubuntu),4(adm),20(dialout),24(cdro
 ## Ruby/Rails Deserialization
 
 - `BAh`: Marshal serialized data 的 base64 編碼特徵
+- `secret_key_base`
+    - 用於 `ActiveSupport::MessageVerifier` / `ActiveSupport::MessageEncryptor`
+        - sign & encrypt cookies
+        - ActiveStorage 反序列化
+    - Rails 5.2 後，可透過 `credentials.yml.enc` 和 `master.key` 還原
+        - [script](https://github.com/w181496/Web-CTF-Cheatsheet/blob/master/scripts/others/secret_key_base_decrypt.rb)
 
 ### Gadget chain
 
+- Ruby 3.4 Universal RCE Deserialization Gadget Chain by Luke Jahnke (2024)
+    - https://nastystereo.com/security/ruby-3.4-deserialization.html
+- Execute commands by sending JSON? Learn how unsafe deserialization vulnerabilities work in Ruby projects by Peter Stöckli (2024)
+    - https://github.blog/security/vulnerability-research/execute-commands-by-sending-json-learn-how-unsafe-deserialization-vulnerabilities-work-in-ruby-projects/
+- Discovering Deserialization Gadget Chains in Rubyland by Alex Leahu (2024)
+    - https://blog.includesecurity.com/2024/03/discovering-deserialization-gadget-chains-in-rubyland/
 - Ruby Deserialization - Gadget on Rails by httpvoid (2022)
     - https://github.com/httpvoid/writeups/blob/main/Ruby-deserialization-gadget-on-rails.md
 - Universal gadget for ruby 2.x-3.x by vakzz (2021)
     - https://devcraft.io/2021/01/07/universal-deserialisation-gadget-for-ruby-2-x-3-x.html
+- Universal RCE with Ruby YAML.load (versions > 2.7) by Etienne Stalmans  (2021)
+    - https://staaldraad.github.io/post/2021-01-09-universal-rce-ruby-yaml-load-updated/
 - PBCTF 2020 - R0bynotes (2020)
     - ERB 無法用，改用 `ActiveModel::AttributeMethods::ClassMethods::CodeGenerator`
 - Universal gadget for ruby 2.x by elttam (2018)
@@ -2822,6 +2836,8 @@ print marshalled
     - [JNDI-Injection-Bypass](https://github.com/welk1n/JNDI-Injection-Bypass)
 - [Java-Deserialization-Cheat-Sheet](https://github.com/GrrrDog/Java-Deserialization-Cheat-Sheet)
 - Example
+    - [0CTF 2022 - hessian-onlyjdk](https://gist.github.com/CykuTW/4c0d105df24acf2218e0aedb67661da9)
+        - hessian2 反序列化
     - [0CTF 2022 - 3rm1](https://github.com/ceclin/0ctf-2022-soln-3rm1)
     - [Balsn CTF 2021 - 4pple Music](https://github.com/w181496/My-CTF-Challenges/tree/master/Balsn-CTF-2021#4pple-music)
     - [0CTF 2021 Qual - 2rm1](https://github.com/ceclin/0ctf-2021-2rm1-soln)
@@ -3740,7 +3756,7 @@ require("./index.js")
         - `<svg><svg onload=alert()>`
         - 透過 innerHTML 插入時，會立即被觸發
         - Example
-            - [Dice CTF 2022 - no-cookes](https://blog.huli.tw/2022/02/08/what-i-learned-from-dicectf-2022/)
+            - [Dice CTF 2022 - no-cookies](https://blog.huli.tw/2022/02/08/what-i-learned-from-dicectf-2022/)
             - [HITCON CTF 2022 - Self Destruct Message](https://blog.splitline.tw/hitcon-ctf-2022/)
             - [一次对 Tui Editor XSS 的挖掘与分析](https://www.leavesongs.com/PENETRATION/a-tour-of-tui-editor-xss.html)
 - Protocol
@@ -3911,6 +3927,9 @@ https://csp-evaluator.withgoogle.com/
     - Example
         - [SeikaiCTF 2023 - Golf Jail](https://blog.antoniusblock.net/posts/golfjail/)
         - [corCTF 2023 - crabspace](https://blog.huli.tw/2023/09/02/corctf-sekaictf-2023-writeup/#crabspace-4-solves)
+- Tool
+    - https://cspbypass.com/
+
 ### Upload XSS
 
 - htm
@@ -4453,6 +4472,10 @@ state[i] = state[i-3] + state[i-31]`
             - Example: 
                 - [CSAW 2021 - gatekeeping](https://lebr0nli.github.io/blog/security/nginx-gunicorn-CSAW2021/#exploit)
                 - [corCTF 2023 - pdf pal](https://blog.huli.tw/2023/09/02/corctf-sekaictf-2023-writeup/#pdf-pal-2-solves)
+    - Nginx + Swift
+        - Example: [Line CTF 2024 - zipviewer-version-clown](https://adragos.ro/line-ctf-2024/#zipviewer-version-clown)
+            - Nginx 大小寫敏感，Swift 不敏感
+            - 繞 Rate limit
     - Haproxy + Caddy
         - Haproxy: `keep-alive` + `CONNECT` + 2xx status，會讓其處於 tunnel mode，不採用任何 rules
         - Cadday: 用 normalized path 來 matching，但送出的卻不是 normalized path
@@ -4474,7 +4497,7 @@ state[i] = state[i-3] + state[i-31]`
         - [PBCTF 2023 - Makima](https://nguyendt.hashnode.dev/pbctf-2023-writeup#heading-makima)
 
 
-- Nginx目錄穿越漏洞
+- Nginx 目錄穿越漏洞
     - 常見於 Nginx 做 Reverse Proxy 的狀況
     ```
     location /files {
@@ -4664,6 +4687,7 @@ state[i] = state[i-3] + state[i-31]`
         - `${"".getClass().forName("java.lang.Runtime").getMethods()[6].invoke("".getClass().forName("java.lang.Runtime")).exec("calc.exe")}`
         - `${request.getClass().forName("javax.script.ScriptEngineManager").newInstance().getEngineByName("js").eval("java.lang.Runtime.getRuntime().exec(\\\"ping x.x.x.x\\\")"))}`
     - Example
+        - [Line CTF 2024 - Heritage](https://gist.github.com/tyage/e0afc9ff5051c2cc487a8cd9b6a1d7ea#heritage)
         - [Seikai CTF 2023 - Frog WAF](https://blog.huli.tw/2023/09/02/corctf-sekaictf-2023-writeup/#frog-waf-29-solves)
         - 繞 openrasp: https://landgrey.me/blog/15/
 - GraphQL
