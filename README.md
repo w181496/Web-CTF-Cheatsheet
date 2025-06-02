@@ -930,6 +930,31 @@ echo file_get_contents('bar/etc/passwd');
     - 而 `mb_substr` 則有不一致，當遇到 leading byte 時，會跳過 continuation bytes
         - Example: `mb_substr("\xf0\x9fAAA<BB", 0, 4)` -> `"\xf0\x9fAAA<B"`
     - ref: [Joomla XSS](https://www.sonarsource.com/blog/joomla-multiple-xss-vulnerabilities/)
+- Reflection
+    - PHP8.1 Reflection 可以呼叫 protected/private 函數
+    ```php
+    <?php
+    class ApiController
+    {
+        protected function protectedMethod() {
+            echo "protected";
+        }
+
+        public function handle($method)
+        {
+            $refMethod = new ReflectionMethod($this, $method);
+            $refMethod->invoke($this);
+        }
+    }
+
+    $api = new ApiController();
+    $api->handle('protectedMethod');
+    
+    # php 8.1+: protected
+    # < php 8.1: Fatal error
+    ```
+    - [ref](https://karmainsecurity.com/dont-call-that-protected-method-vbulletin-rce)
+
 
 # Command Injection
 
